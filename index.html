@@ -347,9 +347,10 @@
                             <a href="tel:${service.phone}" class="flex-1 bg-white border-2 border-primary text-primary font-bold py-2 rounded-lg text-center text-sm hover:bg-orange-50 transition">
                                 <i class="fas fa-phone-alt mr-1"></i>電話する
                             </a>
-                            <button onclick="alert('詳細画面を開きます（モック）')" class="flex-1 bg-primary text-white font-bold py-2 rounded-lg text-center text-sm hover:bg-orange-600 transition shadow-sm">
-                                詳細を見る
-                            </button>
+                            ${service.detailUrl
+                                ? `<a href="${service.detailUrl}" target="_blank" rel="noopener" class="flex-1 bg-primary text-white font-bold py-2 rounded-lg text-center text-sm hover:bg-orange-600 transition shadow-sm">詳細を見る</a>`
+                                : `<button onclick="alert('この事業所の詳細ページはまだ準備中です。お電話でお問い合わせください。')" class="flex-1 bg-primary text-white font-bold py-2 rounded-lg text-center text-sm hover:bg-orange-600 transition shadow-sm">詳細を見る</button>`
+                            }
                         </div>
                     </div>
                 `;
