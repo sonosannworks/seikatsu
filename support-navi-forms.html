@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>サポートナビ〇〇市 - 登録・ご意見フォーム</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#f97316',   // オレンジ
+          secondary: '#10b981', // グリーン
+          background: '#f3f4f6',
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background-color: #f3f4f6; }
+  .choice-chip { transition: all 0.2s ease; }
+  .choice-chip.active { border-color: #f97316; background-color: #fff7ed; color: #f97316; font-weight: 700; }
+  .tab-btn.active-register { border-color: #10b981; background-color: #ecfdf5; color: #10b981; }
+  .tab-btn.active-feedback { border-color: #9ca3af; background-color: #f9fafb; color: #4b5563; }
+</style>
+</head>
+<body class="text-gray-800 pb-10">
+
+  <!-- ヘッダー -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+      <h1 class="text-lg font-bold text-gray-800"><i class="fas fa-hands-helping text-primary mr-2"></i>サポートナビ〇〇市</h1>
+      <a href="code_artifact.html" class="text-gray-500 hover:text-primary text-sm">
+        <i class="fas fa-arrow-left mr-1"></i>戻る
+      </a>
+    </div>
+    <div class="bg-orange-50 px-4 py-2 text-xs text-orange-800 border-b border-orange-100">
+      地域の情報提供・お問い合わせフォーム
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto px-4 py-6">
+
+    <!-- タブ切替 -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      <button onclick="showPanel('register')" id="tab-register"
+        class="tab-btn active-register flex flex-col items-center justify-center p-3 bg-white border-2 rounded-xl font-bold">
+        <i class="fas fa-plus-circle text-xl mb-1"></i>
+        <span class="text-xs">団体・サービス登録</span>
+      </button>
+      <button onclick="showPanel('feedback')" id="tab-feedback"
+        class="tab-btn flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50">
+        <i class="far fa-comment-dots text-xl mb-1 text-gray-400"></i>
+        <span class="text-xs">ご意見・困りごと箱</span>
+      </button>
+    </div>
+
+    <!-- ============ 登録フォーム ============ -->
+    <section id="panel-register">
+      <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 text-xs text-orange-800 leading-relaxed mb-5">
+        <i class="fas fa-circle-info mr-1"></i>
+        地域で生活を支えるサービスや活動を教えてください。法人・個人事業主・お店・学校・ボランティア団体など、どなたでもご登録いただけます。いただいた内容は生活支援コーディネーターが確認のうえ掲載します。
+      </div>
+
+      <div id="register-status" class="hidden text-sm rounded-xl px-4 py-3 mb-4 leading-relaxed"></div>
+
+      <form id="register-form" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-5">
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">営利・非営利 <span class="text-primary text-[10px] font-bold">必須</span></label>
+          <div class="flex flex-wrap gap-2">
+            <label class="choice-chip flex items-center border border-gray-200 rounded-lg px-3 py-2 text-sm cursor-pointer">
+              <input type="radio" name="profitType" value="営利" required class="mr-1 accent-primary" onchange="updateChip(this)">営利
+            </label>
+            <label class="choice-chip flex items-center border border-gray-200 rounded-lg px-3 py-2 text-sm cursor-pointer">
+              <input type="radio" name="profitType" value="非営利" class="mr-1 accent-primary" onchange="updateChip(this)">非営利（ボランティア含む）
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">提供主体の種類 <span class="text-primary text-[10px] font-bold">必須</span></label>
+          <select name="providerType" required
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+            <option value="">選択してください</option>
+            <option>法人（会社・有限会社等）</option>
+            <option>個人事業主・店舗（飲食店・理美容室等）</option>
+            <option>NPO・ボランティア団体</option>
+            <option>学校・教育機関</option>
+            <option>スーパー・商業施設</option>
+            <option>その他</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">サービス分類（複数選択可） <span class="text-primary text-[10px] font-bold">必須</span></label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="choice-chip flex flex-col items-center justify-center p-2 border border-gray-200 rounded-lg text-gray-600 text-xs cursor-pointer">
+              <input type="checkbox" name="categories" value="訪問" class="mb-1 accent-primary" onchange="updateChip(this)">訪問
+            </label>
+            <label class="choice-chip flex flex-col items-center justify-center p-2 border border-gray-200 rounded-lg text-gray-600 text-xs cursor-pointer">
+              <input type="checkbox" name="categories" value="通所" class="mb-1 accent-primary" onchange="updateChip(this)">通所
+            </label>
+            <label class="choice-chip flex flex-col items-center justify-center p-2 border border-gray-200 rounded-lg text-gray-600 text-xs cursor-pointer">
+              <input type="checkbox" name="categories" value="付き添い" class="mb-1 accent-primary" onchange="updateChip(this)">付き添い
+            </label>
+            <label class="choice-chip flex flex-col items-center justify-center p-2 border border-gray-200 rounded-lg text-gray-600 text-xs cursor-pointer">
+              <input type="checkbox" name="categories" value="移動" class="mb-1 accent-primary" onchange="updateChip(this)">移動
+            </label>
+            <label class="choice-chip flex flex-col items-center justify-center p-2 border border-gray-200 rounded-lg text-gray-600 text-xs cursor-pointer">
+              <input type="checkbox" name="categories" value="食事" class="mb-1 accent-primary" onchange="updateChip(this)">食事
+            </label>
+            <label class="choice-chip flex flex-col items-center justify-center p-2 border border-gray-200 rounded-lg text-gray-600 text-xs cursor-pointer">
+              <input type="checkbox" name="categories" value="環境" class="mb-1 accent-primary" onchange="updateChip(this)">環境
+            </label>
+            <label class="choice-chip flex flex-col items-center justify-center p-2 border border-gray-200 rounded-lg text-gray-600 text-xs cursor-pointer">
+              <input type="checkbox" name="categories" value="行政手続き" class="mb-1 accent-primary" onchange="updateChip(this)">行政手続き
+            </label>
+            <label class="choice-chip flex flex-col items-center justify-center p-2 border border-gray-200 rounded-lg text-gray-600 text-xs cursor-pointer">
+              <input type="checkbox" name="categories" value="その他" class="mb-1 accent-primary" onchange="updateChip(this)">その他
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">サービス名称（団体・店舗名） <span class="text-primary text-[10px] font-bold">必須</span></label>
+          <input type="text" name="serviceName" placeholder="例：まごころ弁当宅配便" required
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">提供主体（運営者名・法人名等）</label>
+          <input type="text" name="operatorName" placeholder="例：株式会社〇〇"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">サービス内容 <span class="text-primary text-[10px] font-bold">必須</span></label>
+          <textarea name="description" rows="3" placeholder="どんなサービスか、具体的に教えてください" required
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">対象地域</label>
+          <input type="text" name="area" placeholder="例：〇〇市全域、△△地区のみ　など"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">料金目安</label>
+          <div class="bg-gray-50 rounded-lg border border-gray-100 p-2">
+            <input type="text" name="price" placeholder="例：無料 / 1回500円 / 実費　など"
+              class="w-full bg-transparent text-sm focus:outline-none">
+          </div>
+          <p class="text-[10px] text-gray-400 mt-1">「相場が分からない」場合は空欄で構いません。</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">実施頻度・曜日・時間帯</label>
+          <input type="text" name="schedule" placeholder="例：毎週火・木曜 10時〜12時"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">電話番号 <span class="text-primary text-[10px] font-bold">必須</span></label>
+          <input type="tel" name="phone" placeholder="0982-00-0000" required
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">メールアドレス／ホームページURL</label>
+          <input type="text" name="contact" placeholder="任意"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">ご担当者名</label>
+          <input type="text" name="personName" placeholder="任意"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">備考</label>
+          <textarea name="note" rows="2" placeholder="その他伝えておきたいことがあれば"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"></textarea>
+        </div>
+
+        <button type="submit"
+          class="w-full bg-secondary text-white font-bold py-3 rounded-xl shadow-sm hover:bg-emerald-600 transition flex items-center justify-center">
+          <i class="fas fa-paper-plane mr-2"></i>この内容で登録する
+        </button>
+      </form>
+
+      <p class="text-[10px] text-gray-400 text-center mt-3 leading-relaxed">
+        ※いただいた情報は生活支援コーディネーターが確認し、地域の支え合い活動に活用させていただきます。
+      </p>
+    </section>
+
+    <!-- ============ ご意見フォーム ============ -->
+    <section id="panel-feedback" class="hidden">
+      <div class="bg-gray-100 border border-gray-200 rounded-xl p-4 text-xs text-gray-600 leading-relaxed mb-5">
+        <i class="far fa-comment-dots mr-1"></i>
+        サポートナビへのご意見・ご要望や、生活の中での困りごとをお聞かせください。内容はコーディネーターが確認します。
+      </div>
+
+      <div id="feedback-status" class="hidden text-sm rounded-xl px-4 py-3 mb-4 leading-relaxed"></div>
+
+      <form id="feedback-form" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-5">
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">種別 <span class="text-primary text-[10px] font-bold">必須</span></label>
+          <div class="flex flex-wrap gap-2">
+            <label class="choice-chip flex items-center border border-gray-200 rounded-lg px-3 py-2 text-sm cursor-pointer">
+              <input type="radio" name="type" value="ご意見" required class="mr-1 accent-primary" onchange="updateChip(this)">ご意見
+            </label>
+            <label class="choice-chip flex items-center border border-gray-200 rounded-lg px-3 py-2 text-sm cursor-pointer">
+              <input type="radio" name="type" value="ご要望" class="mr-1 accent-primary" onchange="updateChip(this)">ご要望
+            </label>
+            <label class="choice-chip flex items-center border border-gray-200 rounded-lg px-3 py-2 text-sm cursor-pointer">
+              <input type="radio" name="type" value="困りごと・相談" class="mr-1 accent-primary" onchange="updateChip(this)">困りごと・相談
+            </label>
+            <label class="choice-chip flex items-center border border-gray-200 rounded-lg px-3 py-2 text-sm cursor-pointer">
+              <input type="radio" name="type" value="その他" class="mr-1 accent-primary" onchange="updateChip(this)">その他
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">内容 <span class="text-primary text-[10px] font-bold">必須</span></label>
+          <textarea name="content" rows="4" placeholder="内容をご記入ください" required
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">お名前</label>
+          <input type="text" name="name" placeholder="任意"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">連絡先（電話番号・メール）</label>
+          <input type="text" name="contact" placeholder="折り返しが必要な場合はご記入ください"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary">
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold mb-2 text-gray-700">折り返し希望</label>
+          <div class="flex flex-wrap gap-2">
+            <label class="choice-chip flex items-center border border-gray-200 rounded-lg px-3 py-2 text-sm cursor-pointer">
+              <input type="radio" name="wantsReply" value="希望する" class="mr-1 accent-primary" onchange="updateChip(this)">希望する
+            </label>
+            <label class="choice-chip active flex items-center border border-gray-200 rounded-lg px-3 py-2 text-sm cursor-pointer">
+              <input type="radio" name="wantsReply" value="希望しない" checked class="mr-1 accent-primary" onchange="updateChip(this)">希望しない
+            </label>
+          </div>
+        </div>
+
+        <button type="submit"
+          class="w-full bg-gray-600 text-white font-bold py-3 rounded-xl shadow-sm hover:bg-gray-700 transition flex items-center justify-center">
+          <i class="fas fa-paper-plane mr-2"></i>送信する
+        </button>
+      </form>
+    </section>
+
+  </main>
+
+<script>
+  function showPanel(target) {
+    const isRegister = target === 'register';
+    document.getElementById('panel-register').classList.toggle('hidden', !isRegister);
+    document.getElementById('panel-feedback').classList.toggle('hidden', isRegister);
+
+    const regTab = document.getElementById('tab-register');
+    const fbTab = document.getElementById('tab-feedback');
+
+    regTab.className = 'tab-btn flex flex-col items-center justify-center p-3 bg-white rounded-xl font-bold ' +
+      (isRegister ? 'active-register border-2' : 'border border-gray-200 text-gray-600 hover:bg-gray-50');
+    fbTab.className = 'tab-btn flex flex-col items-center justify-center p-3 bg-white rounded-xl font-bold ' +
+      (!isRegister ? 'active-feedback border-2' : 'border border-gray-200 text-gray-600 hover:bg-gray-50');
+  }
+
+  // チップ（ラジオ/チェックボックス）の選択状態に応じて枠線・背景を切り替える
+  function updateChip(input) {
+    const name = input.name;
+    // ラジオボタンは同グループの他チップを解除
+    if (input.type === 'radio') {
+      document.querySelectorAll(`input[name="${name}"]`).forEach(el => {
+        el.closest('label').classList.remove('active');
+      });
+    }
+    if (input.checked) {
+      input.closest('label').classList.add('active');
+    } else {
+      input.closest('label').classList.remove('active');
+    }
+  }
+
+  // ここにGASのウェブアプリURLを設定してください
+  // 例: https://script.google.com/macros/s/xxxxxxxxxxxxxxxx/exec
+  const GAS_WEB_APP_URL = 'GAS_WEB_APP_URL_HERE';
+
+  function collectFormData(form) {
+    const fd = new FormData(form);
+    const data = {};
+    for (const [key, value] of fd.entries()) {
+      if (key === 'categories') {
+        if (!data.categories) data.categories = [];
+        data.categories.push(value);
+      } else {
+        data[key] = value;
+      }
+    }
+    return data;
+  }
+
+  async function sendToSheet(formType, data, statusEl, form) {
+    statusEl.classList.remove('hidden');
+    statusEl.className = 'text-sm rounded-xl px-4 py-3 mb-4 leading-relaxed bg-gray-100 text-gray-600';
+    statusEl.textContent = '送信中です…';
+
+    try {
+      await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ formType, data })
+      });
+      statusEl.className = 'text-sm rounded-xl px-4 py-3 mb-4 leading-relaxed bg-emerald-50 text-emerald-800';
+      statusEl.textContent = 'ご登録ありがとうございました。内容を確認のうえ掲載いたします。';
+      form.reset();
+      form.querySelectorAll('.choice-chip').forEach(el => el.classList.remove('active'));
+    } catch (err) {
+      statusEl.className = 'text-sm rounded-xl px-4 py-3 mb-4 leading-relaxed bg-red-50 text-red-700';
+      statusEl.textContent = '送信に失敗しました。時間をおいて再度お試しください。';
+    }
+  }
+
+  document.getElementById('register-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    sendToSheet('register', collectFormData(this), document.getElementById('register-status'), this);
+  });
+
+  document.getElementById('feedback-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    sendToSheet('feedback', collectFormData(this), document.getElementById('feedback-status'), this);
+  });
+
+  // URLが #feedback の場合は、ご意見・困りごと箱タブを最初から開く
+  if (location.hash === '#feedback') {
+    showPanel('feedback');
+  }
+</script>
+
+</body>
+</html>
