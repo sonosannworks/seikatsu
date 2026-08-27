@@ -81,10 +81,10 @@
         <section class="mt-10 mb-4 border-t border-gray-200 pt-6">
             <h2 class="text-sm font-bold mb-3 text-gray-700 text-center">地域の情報をお寄せください</h2>
             <div class="flex flex-col gap-3">
-                <button onclick="openForm('register')" class="w-full bg-white border-2 border-secondary text-secondary font-bold py-3 rounded-xl shadow-sm flex items-center justify-center hover:bg-green-50 transition">
+                <button onclick="location.href='support-navi-forms.html'" class="w-full bg-white border-2 border-secondary text-secondary font-bold py-3 rounded-xl shadow-sm flex items-center justify-center hover:bg-green-50 transition">
                     <i class="fas fa-plus-circle mr-2 text-lg"></i>新しい支援団体・サービスを登録する
                 </button>
-                <button onclick="openForm('feedback')" class="w-full bg-white border border-gray-300 text-gray-600 font-bold py-3 rounded-xl shadow-sm flex items-center justify-center hover:bg-gray-50 transition">
+                <button onclick="location.href='support-navi-forms.html#feedback'" class="w-full bg-white border border-gray-300 text-gray-600 font-bold py-3 rounded-xl shadow-sm flex items-center justify-center hover:bg-gray-50 transition">
                     <i class="far fa-comment-dots mr-2 text-lg"></i>サービスに関するご意見・困りごと箱
                 </button>
             </div>
@@ -115,21 +115,6 @@
     <script>
         // GASウェブアプリのURL（データはこのGASデプロイURL経由でスプレッドシートから取得します）
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbyeKYE-rV_GS8eheQNjBCLemPTcPDT1I77BkjzJdTqnRfeQeGYw1zinHhS8fqQxG-E8/exec';
-
-        // Googleフォームのリンク（未設定の間はクリック時に案内を表示します）
-        const FORM_URLS = {
-            register: '', // 「新しい支援団体・サービスを登録する」ボタン用フォームURL
-            feedback: ''  // 「サービスに関するご意見・困りごと箱」ボタン用フォームURL
-        };
-
-        function openForm(key) {
-            const url = FORM_URLS[key];
-            if (!url) {
-                alert('Googleフォームのリンクがまだ設定されていません');
-                return;
-            }
-            window.open(url, '_blank');
-        }
 
         // カテゴリマスターデータ
         const categories = [
