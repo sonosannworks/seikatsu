@@ -135,12 +135,65 @@ footer a { color: var(--accent-text); font-weight: 700; }
   .panel, .card { padding: 22px; }
 }
 /* パソコン：条件を左に固定、結果を右に2列 */
+/* パソコン：左に絞り込みのリスト、右に事業所を1行ずつ並べる一覧表示 */
 @media (min-width: 960px) {
-  .layout { display: grid; grid-template-columns: 360px minmax(0, 1fr); align-items: start; gap: 28px; }
-  .panel { position: sticky; top: 16px; }
-  .chips, .chips.areas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body { font-size: 15px; }
+  .wrap { max-width: 1320px; gap: 20px; padding-block: 28px 56px; }
+  h1 { font-size: 30px; }
+  .lead { font-size: 14px; }
+  .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: start; gap: 28px; }
+
+  /* 絞り込み：縦に並ぶ項目リスト */
+  .panel { position: sticky; top: 16px; padding: 18px 14px; gap: 18px; max-height: calc(100vh - 32px); overflow: auto; }
+  .label { font-size: 13px; color: var(--muted); padding-inline: 6px; }
+  .field { gap: 6px; }
+  .chips, .chips.areas { display: flex; flex-direction: column; gap: 2px; }
+  .chip {
+    flex-direction: row; justify-content: space-between; align-items: center;
+    min-height: 40px; padding: 6px 10px; border-radius: 8px; font-size: 15px;
+    background: transparent; border: none; box-shadow: none;
+  }
+  .chip:not([aria-pressed="true"]):hover { background: var(--chip-bg); }
+  .chip .n { background: transparent; color: var(--muted); font-size: 13px; padding: 0; }
+  .chip[aria-pressed="true"] .n { background: transparent; color: var(--accent-ink); }
+  .search input { min-height: 44px; font-size: 15px; padding-left: 40px; }
+  .search svg { width: 18px; height: 18px; left: 13px; }
+
+  /* 結果：表のように1行ずつ */
+  .results { gap: 12px; }
+  .result-head h2 { font-size: 20px; }
+  .count b { font-size: 22px; }
+  .list {
+    display: flex; flex-direction: column; gap: 0;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .card {
+    display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.5fr) 132px;
+    column-gap: 24px; row-gap: 4px; align-items: start;
+    padding: 16px 20px; border: none; border-radius: 0; box-shadow: none;
+    border-top: 1px solid var(--line);
+  }
+  .card:first-child { border-top: none; }
+  .card:hover { background: #fbfdfc; }
+  .card > .tags { grid-column: 1; grid-row: 1; }
+  .card > h3 { grid-column: 1; grid-row: 2; font-size: 17px; }
+  .card > .corp { grid-column: 1; grid-row: 3; font-size: 13px; }
+  .card > .meta { grid-column: 2; grid-row: 1 / span 3; font-size: 14px; grid-template-columns: 3.5em minmax(0, 1fr); gap: 2px 10px; align-self: center; }
+  .card > .meta dt { font-size: 12px; padding-top: 2px; }
+  .card .tel-num { font-size: 16px; }
+  .card > .actions { grid-column: 3; grid-row: 1 / span 3; display: flex; flex-direction: column; gap: 6px; margin: 0; align-self: center; }
+  .tag { font-size: 12px; padding: 2px 8px; }
+  .btn { min-height: 36px; font-size: 14px; padding: 4px 8px; border-width: 1.5px; border-radius: 8px; }
+  .more { min-height: 48px; font-size: 15px; }
+
+  /* 紹介セクション・フッター */
+  .share-section { grid-template-columns: 180px minmax(0, 1fr); }
+  .share-section .qr-box { width: 180px; }
+  .share-actions.inline { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+/* マウス操作のパソコンでは「電話する」を隠し、番号表示とコピーを使う */
+@media (min-width: 960px) and (hover: hover) and (pointer: fine) {
+  .card .btn.primary[href^="tel:"] { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) { .btn, .chip, .more { transition: background-color .15s, color .15s; } }
 
@@ -342,7 +395,7 @@ function areaOf(addr) {
 const AREAS = ['すべて', '小林', '野尻', '須木'];
 
 const items = DATA.items.map(i => ({ ...i, area: areaOf(i.a) }));
-const PAGE = 30;
+const PAGE = window.matchMedia('(min-width: 960px)').matches ? 50 : 30;
 let state = { group: 'all', area: 'すべて', q: '', shown: PAGE };
 
 function esc(v) {
