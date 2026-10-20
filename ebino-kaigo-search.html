@@ -126,6 +126,9 @@ h1 {
 
 footer { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 18px; }
 footer a { color: var(--accent-text); font-weight: 700; }
+footer .credit { padding-top: 8px; border-top: 1px dashed var(--line); }
+.maker { display: flex; flex-direction: column; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+.maker-label { font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
 
 /* タブレット以上 */
 @media (min-width: 640px) {
@@ -337,6 +340,8 @@ dialog.sheet::backdrop { background: rgba(15, 23, 42, .45); }
     <span id="source"></span>
     <span>電話番号・営業日などは変わっていることがあります。ご利用の前に各事業所へご確認ください。</span>
     <a href="https://www.kaigokensaku.mhlw.go.jp/45/" target="_blank" rel="noopener">介護サービス情報公表システム（宮崎県版）で詳しく調べる</a>
+    <span>このページは、国の公開データをもとに個人が作成したものです。市や国の公式ページではありません。</span>
+    <span class="credit">制作：<a href="https://sonosann-webai.net/" target="_blank" rel="noopener">sonosann Web&amp;AIサポート</a></span>
   </footer>
 </div>
 
@@ -369,6 +374,10 @@ dialog.sheet::backdrop { background: rgba(15, 23, 42, .45); }
       <a class="sheet-link" href="#share" data-close>このページを紹介する<small>LINEで送る・URLコピー・QR画像の保存</small></a>
       <a class="sheet-link" href="#about" data-close>このページについて<small>情報の出典と注意事項</small></a>
     </nav>
+    <div class="maker">
+      <span class="maker-label">このページを作った人</span>
+      <a class="sheet-link" href="https://sonosann-webai.net/" target="_blank" rel="noopener">sonosann Web&amp;AIサポート<small>看護師・ケアマネ経験を活かした、介護事業所のHP制作・DX支援</small></a>
+    </div>
   </div>
 </dialog>
 
