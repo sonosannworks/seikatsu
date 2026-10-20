@@ -129,6 +129,8 @@ footer a { color: var(--accent-text); font-weight: 700; }
 footer .credit { padding-top: 8px; border-top: 1px dashed var(--line); }
 .maker { display: flex; flex-direction: column; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
 .maker-label { font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
+.town-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.town-link { padding: 12px 14px; }
 
 /* タブレット以上 */
 @media (min-width: 640px) {
@@ -374,6 +376,13 @@ dialog.sheet::backdrop { background: rgba(15, 23, 42, .45); }
       <a class="sheet-link" href="#share" data-close>このページを紹介する<small>LINEで送る・URLコピー・QR画像の保存</small></a>
       <a class="sheet-link" href="#about" data-close>このページについて<small>情報の出典と注意事項</small></a>
     </nav>
+    <div class="maker">
+      <span class="maker-label">西諸地区のほかの市町</span>
+      <div class="town-links">
+      <a class="sheet-link town-link" href="https://start-reposi.vercel.app/kaigo/ebino">えびの市<small>事業所を探す</small></a>
+      <a class="sheet-link town-link" href="https://start-reposi.vercel.app/kaigo/takaharu">高原町<small>事業所を探す</small></a>
+      </div>
+    </div>
     <div class="maker">
       <span class="maker-label">このページを作った人</span>
       <a class="sheet-link" href="https://sonosann-webai.net/" target="_blank" rel="noopener">sonosann Web&amp;AIサポート<small>看護師・ケアマネ経験を活かした、介護事業所のHP制作・DX支援</small></a>
