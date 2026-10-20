@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="宮崎県小林市内の介護保険事業所を、サービスの種類・地区・名前で探せる検索ページです。">
 <title>小林市内の介護保険事業所検索</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,97 +39,130 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 body {
   background: var(--bg); color: var(--ink);
-  font-family: var(--font-body); font-size: 15px; line-height: 1.6;
+  font-family: var(--font-body); font-size: 17px; line-height: 1.65;
 }
 .wrap {
-  max-width: 640px; margin: 0 auto;
+  max-width: 1080px; margin: 0 auto;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 20px 40px;
-  display: flex; flex-direction: column; gap: 20px;
+  padding-block: 24px 48px;
+  display: flex; flex-direction: column; gap: 24px;
 }
-header { display: flex; flex-direction: column; gap: 6px; }
-.eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--accent); font-weight: 700; }
+header { display: flex; flex-direction: column; gap: 8px; }
+.eyebrow { font-size: 14px; letter-spacing: .08em; color: var(--accent); font-weight: 700; }
+.nb { display: inline-block; }
 h1 {
-  font-family: var(--font-display); font-size: clamp(22px, 6vw, 28px); line-height: 1.35;
+  font-family: var(--font-display); font-size: clamp(26px, 7.2vw, 36px); line-height: 1.3;
   margin: 0; text-wrap: balance;
 }
-.lead { margin: 0; color: var(--muted); font-size: 13px; }
+.lead { margin: 0; color: var(--muted); font-size: 15px; }
+
+/* スマホは縦に1列、広い画面では左に条件・右に結果 */
+.layout { display: flex; flex-direction: column; gap: 24px; }
+.results { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
 .panel {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-  padding: 16px; display: flex; flex-direction: column; gap: 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  padding: 18px 16px; display: flex; flex-direction: column; gap: 20px;
 }
-.label { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
-.field { display: flex; flex-direction: column; gap: 8px; }
+.label { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: .04em; }
+.field { display: flex; flex-direction: column; gap: 10px; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.chips.areas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .chip {
-  font: inherit; font-size: 13px; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 12px; border-radius: 999px;
-  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  font: inherit; font-size: clamp(14px, 3.8vw, 16px); font-weight: 500; cursor: pointer; text-align: left;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px;
+  min-height: 64px; padding: 10px 11px; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  line-height: 1.35;
 }
-.chip .n { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip .name { min-width: 0; overflow-wrap: anywhere; }
+.chip .n {
+  font-size: 13px; font-weight: 700; color: var(--accent);
+  background: var(--accent-soft); border-radius: 999px; padding: 1px 10px;
+  font-variant-numeric: tabular-nums;
+}
 .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
-.chip[aria-pressed="true"] .n { color: var(--accent-ink); opacity: .85; }
-.chip:focus-visible, .btn:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.chip[aria-pressed="true"] .n { background: var(--accent-ink); color: var(--accent); }
+.chip:focus-visible, .btn:focus-visible, input:focus-visible, a:focus-visible, .more:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 .search { position: relative; }
 .search input {
-  width: 100%; font: inherit; font-size: 15px; color: var(--ink);
-  padding: 11px 14px 11px 38px; border-radius: 10px;
-  border: 1px solid var(--line); background: var(--bg);
+  width: 100%; font: inherit; font-size: 17px; color: var(--ink);
+  min-height: 56px; padding: 12px 14px 12px 46px; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--bg);
 }
-.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; fill: var(--muted); }
+.search svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; fill: var(--muted); }
 
 .result-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.result-head h2 { font-family: var(--font-display); font-size: 18px; margin: 0; }
-.count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.count b { color: var(--ink); font-size: 18px; }
+.result-head h2 { font-family: var(--font-display); font-size: 21px; line-height: 1.4; margin: 0; text-wrap: balance; }
+.count { font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.count b { color: var(--ink); font-size: 26px; }
 
-.list { display: flex; flex-direction: column; gap: 12px; }
+.list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .card {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-  padding: 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  padding: 18px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0;
 }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
+.tag { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); }
 .tag.area { background: var(--tag-soft); color: var(--tag); }
-.card h3 { margin: 0; font-size: 17px; line-height: 1.4; overflow-wrap: anywhere; }
-.corp { margin: 0; font-size: 12px; color: var(--muted); }
-.meta { margin: 0; font-size: 13px; display: grid; grid-template-columns: 4.5em 1fr; gap: 2px 8px; }
-.meta dt { color: var(--muted); }
+.card h3 { margin: 0; font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; }
+.corp { margin: 0; font-size: 14px; color: var(--muted); }
+.meta { margin: 0; font-size: 16px; display: grid; grid-template-columns: 4em minmax(0, 1fr); gap: 4px 10px; }
+.meta dt { color: var(--muted); font-size: 14px; padding-top: 2px; }
 .meta dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.tel-num { font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: .02em; user-select: all; }
+.tel-num { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 19px; letter-spacing: .03em; user-select: all; }
 
-.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 6px; }
 .btn {
-  font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none;
-  flex: 1 1 0; min-width: 88px; text-align: center;
-  padding: 10px 8px; border-radius: 10px;
-  border: 1.5px solid var(--accent); color: var(--accent); background: var(--surface);
+  font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 52px; padding: 8px; border-radius: 12px;
+  border: 2px solid var(--accent); color: var(--accent); background: var(--surface);
 }
 .btn.primary { background: var(--accent); color: var(--accent-ink); }
 .btn.copied { border-color: var(--muted); color: var(--muted); }
 
-.empty { text-align: center; color: var(--muted); padding: 32px 16px; background: var(--surface); border: 1px dashed var(--line); border-radius: 14px; }
-.more { font: inherit; font-weight: 700; cursor: pointer; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--accent); }
+.empty { text-align: center; color: var(--muted); padding: 36px 16px; background: var(--surface); border: 1.5px dashed var(--line); border-radius: 16px; margin: 0; }
+.more { font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; min-height: 56px; padding: 12px; border-radius: 12px; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
 
-footer { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--line); padding-top: 16px; }
-footer a { color: var(--accent); }
-@media (prefers-reduced-motion: no-preference) { .btn, .chip { transition: background-color .15s, color .15s; } }
+footer { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 18px; }
+footer a { color: var(--accent); font-weight: 700; }
+
+/* タブレット以上 */
+@media (min-width: 640px) {
+  .chips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .chips.areas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .panel, .card { padding: 22px; }
+}
+/* パソコン：条件を左に固定、結果を右に2列 */
+@media (min-width: 960px) {
+  .layout { display: grid; grid-template-columns: 360px minmax(0, 1fr); align-items: start; gap: 28px; }
+  .panel { position: sticky; top: 16px; }
+  .chips, .chips.areas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: no-preference) { .btn, .chip, .more { transition: background-color .15s, color .15s; } }
 </style>
+</head>
+<body>
+
 
 <div class="wrap">
   <header>
     <span class="eyebrow">宮崎県 小林市</span>
-    <h1>小林市内の介護保険事業所検索</h1>
+    <h1><span class="nb">小林市内の</span><span class="nb">介護保険事業所検索</span></h1>
     <p class="lead" id="lead">ケアマネジャー・ご家族向け。サービスの種類や地区、事業所名から探せます。</p>
   </header>
 
+  <div class="layout">
   <section class="panel" aria-label="検索条件">
     <div class="field">
       <span class="label" id="lbl-group">サービスの種類</span>
@@ -131,17 +170,18 @@ footer a { color: var(--accent); }
     </div>
     <div class="field">
       <span class="label" id="lbl-area">地区</span>
-      <div class="chips" id="areas" role="group" aria-labelledby="lbl-area"></div>
+      <div class="chips areas" id="areas" role="group" aria-labelledby="lbl-area"></div>
     </div>
     <div class="field">
       <label class="label" for="q">事業所名・住所・法人名</label>
       <div class="search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 0 1 6.32 12.9l5.39 5.4-1.41 1.4-5.4-5.39A8 8 0 1 1 10 2Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"/></svg>
-        <input id="q" type="search" placeholder="例：ときわ会、細野、訪問看護" autocomplete="off">
+        <input id="q" type="search" placeholder="例：ときわ会、細野" autocomplete="off">
       </div>
     </div>
   </section>
 
+  <div class="results">
   <section aria-live="polite">
     <div class="result-head">
       <h2 id="result-title">すべてのサービス</h2>
@@ -151,6 +191,8 @@ footer a { color: var(--accent); }
 
   <div class="list" id="list"></div>
   <button class="more" id="more" type="button" hidden>もっと見る</button>
+  </div>
+  </div>
 
   <footer>
     <span id="source"></span>
@@ -200,12 +242,12 @@ function renderChips() {
   const base = items.filter(i => inArea(i, state.area));
   document.getElementById('groups').innerHTML = GROUPS.map(g => {
     const n = base.filter(i => inGroup(i, g)).length;
-    return `<button type="button" class="chip" data-group="${g.id}" aria-pressed="${state.group === g.id}">${g.name}<span class="n">${n}</span></button>`;
+    return `<button type="button" class="chip" data-group="${g.id}" aria-pressed="${state.group === g.id}"><span class="name">${g.name}</span><span class="n">${n}件</span></button>`;
   }).join('');
   const g = groupOf(state.group);
   document.getElementById('areas').innerHTML = AREAS.map(a => {
     const n = items.filter(i => inGroup(i, g) && inArea(i, a)).length;
-    return `<button type="button" class="chip" data-area="${a}" aria-pressed="${state.area === a}">${a === 'すべて' ? 'すべての地区' : a + '地区'}<span class="n">${n}</span></button>`;
+    return `<button type="button" class="chip" data-area="${a}" aria-pressed="${state.area === a}"><span class="name">${a === 'すべて' ? 'すべて' : a + '地区'}</span><span class="n">${n}件</span></button>`;
   }).join('');
 }
 
@@ -227,7 +269,7 @@ function card(i, idx) {
     <dl class="meta">
       <dt>住所</dt><dd>${esc(i.a)}</dd>
       ${i.tel ? `<dt>電話</dt><dd><span class="tel-num">${esc(i.tel)}</span></dd>` : ''}
-      ${i.fax ? `<dt>FAX</dt><dd class="tel-num">${esc(i.fax)}</dd>` : ''}
+      ${i.fax ? `<dt>FAX</dt><dd>${esc(i.fax)}</dd>` : ''}
       ${days ? `<dt>営業日</dt><dd>${esc(days)}</dd>` : ''}
     </dl>
     <div class="actions">
@@ -290,3 +332,6 @@ const h = location.hash.slice(1);
 if (GROUPS.some(g => g.id === h)) state.group = h;
 render();
 </script>
+
+</body>
+</html>
