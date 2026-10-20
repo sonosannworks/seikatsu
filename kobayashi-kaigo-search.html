@@ -10,33 +10,26 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@700&display=swap">
 <style>
-/* レイアウト：スマホ1カラム。上に検索条件、下に事業所カード。霧島の山なみを思わせる深い緑を基調に */
+/* レイアウト：スマホ1カラム。上に検索条件、下に事業所カード。昼間でも見やすい明るいライトモード固定、アクセントは爽やかなエメラルドグリーン */
 :root {
-  --bg: #f4f6f4;
+  --bg: #f8fafc;
   --surface: #ffffff;
-  --ink: #1d2a27;
-  --muted: #5d6b67;
-  --line: #dbe3df;
-  --accent: #23665c;
-  --accent-soft: #e2efeb;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --chip-bg: #f1f5f9;
+  --accent: #059669;        /* 選択中ボタン・主ボタンの塗り */
+  --accent-text: #047857;   /* 白背景に載せる緑の文字（読みやすさ優先で一段濃く） */
+  --accent-soft: #d1fae5;
+  --accent-soft-ink: #065f46;
   --accent-ink: #ffffff;
-  --tag: #8a5a1f;
-  --tag-soft: #f6ecdc;
-  --focus: #2f8c7d;
+  --tag: #92400e;
+  --tag-soft: #fef3c7;
+  --focus: #10b981;
+  --shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 2px 8px rgba(15, 23, 42, .05);
   --font-display: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
   --font-body: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #121816; --surface: #1b2421; --ink: #e5ece9; --muted: #9db0aa; --line: #2c3a36;
-    --accent: #5fb8a8; --accent-soft: #1f3631; --accent-ink: #0d1513; --tag: #e2b673; --tag-soft: #3a2f1f; --focus: #7fd1c2;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #121816; --surface: #1b2421; --ink: #e5ece9; --muted: #9db0aa; --line: #2c3a36;
-  --accent: #5fb8a8; --accent-soft: #1f3631; --accent-ink: #0d1513; --tag: #e2b673; --tag-soft: #3a2f1f; --focus: #7fd1c2;
-  color-scheme: dark;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -52,7 +45,7 @@ body {
   display: flex; flex-direction: column; gap: 24px;
 }
 header { display: flex; flex-direction: column; gap: 8px; }
-.eyebrow { font-size: 14px; letter-spacing: .08em; color: var(--accent); font-weight: 700; }
+.eyebrow { font-size: 14px; letter-spacing: .08em; color: var(--accent-text); font-weight: 700; }
 .nb { display: inline-block; }
 h1 {
   font-family: var(--font-display); font-size: clamp(26px, 7.2vw, 36px); line-height: 1.3;
@@ -65,7 +58,7 @@ h1 {
 .results { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
 .panel {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
   padding: 18px 16px; display: flex; flex-direction: column; gap: 20px;
 }
 .label { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: .04em; }
@@ -77,24 +70,24 @@ h1 {
   font: inherit; font-size: clamp(14px, 3.8vw, 16px); font-weight: 500; cursor: pointer; text-align: left;
   display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px;
   min-height: 64px; padding: 10px 11px; border-radius: 12px;
-  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  border: 1.5px solid var(--line); background: var(--chip-bg); color: var(--ink);
   line-height: 1.35;
 }
 .chip .name { min-width: 0; overflow-wrap: anywhere; }
 .chip .n {
-  font-size: 13px; font-weight: 700; color: var(--accent);
+  font-size: 14px; font-weight: 700; color: var(--accent-soft-ink);
   background: var(--accent-soft); border-radius: 999px; padding: 1px 10px;
   font-variant-numeric: tabular-nums;
 }
-.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
-.chip[aria-pressed="true"] .n { background: var(--accent-ink); color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent-text); border-color: var(--accent-text); color: var(--accent-ink); font-weight: 700; }
+.chip[aria-pressed="true"] .n { background: var(--accent-ink); color: var(--accent-text); }
 .chip:focus-visible, .btn:focus-visible, input:focus-visible, a:focus-visible, .more:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 .search { position: relative; }
 .search input {
   width: 100%; font: inherit; font-size: 17px; color: var(--ink);
   min-height: 56px; padding: 12px 14px 12px 46px; border-radius: 12px;
-  border: 1.5px solid var(--line); background: var(--bg);
+  border: 1.5px solid var(--line); background: var(--surface);
 }
 .search svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; fill: var(--muted); }
 
@@ -105,11 +98,11 @@ h1 {
 
 .list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .card {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
   padding: 18px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0;
 }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); }
+.tag { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-soft-ink); }
 .tag.area { background: var(--tag-soft); color: var(--tag); }
 .card h3 { margin: 0; font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; }
 .corp { margin: 0; font-size: 14px; color: var(--muted); }
@@ -123,16 +116,16 @@ h1 {
   font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none;
   display: flex; align-items: center; justify-content: center; text-align: center;
   min-height: 52px; padding: 8px; border-radius: 12px;
-  border: 2px solid var(--accent); color: var(--accent); background: var(--surface);
+  border: 2px solid var(--accent); color: var(--accent-text); background: var(--surface);
 }
 .btn.primary { background: var(--accent); color: var(--accent-ink); }
 .btn.copied { border-color: var(--muted); color: var(--muted); }
 
 .empty { text-align: center; color: var(--muted); padding: 36px 16px; background: var(--surface); border: 1.5px dashed var(--line); border-radius: 16px; margin: 0; }
-.more { font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; min-height: 56px; padding: 12px; border-radius: 12px; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); }
+.more { font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; min-height: 56px; padding: 12px; border-radius: 12px; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent-text); }
 
 footer { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 18px; }
-footer a { color: var(--accent); font-weight: 700; }
+footer a { color: var(--accent-text); font-weight: 700; }
 
 /* タブレット以上 */
 @media (min-width: 640px) {
