@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="宮崎県えびの市内の介護保険事業所を、サービスの種類・地区・名前で探せる検索ページです。">
+<title>えびの市内の介護保険事業所検索</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@700&display=swap">
+<style>
+/* レイアウト：スマホ1カラム。上に検索条件、下に事業所カード。昼間でも見やすい明るいライトモード固定、アクセントは爽やかなエメラルドグリーン */
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --chip-bg: #f1f5f9;
+  --accent: #059669;        /* 選択中ボタン・主ボタンの塗り */
+  --accent-text: #047857;   /* 白背景に載せる緑の文字（読みやすさ優先で一段濃く） */
+  --accent-soft: #d1fae5;
+  --accent-soft-ink: #065f46;
+  --accent-ink: #ffffff;
+  --tag: #92400e;
+  --tag-soft: #fef3c7;
+  --focus: #10b981;
+  --shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 2px 8px rgba(15, 23, 42, .05);
+  --font-display: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 17px; line-height: 1.65;
+}
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+  display: flex; flex-direction: column; gap: 24px;
+}
+header { display: flex; flex-direction: column; gap: 8px; }
+.eyebrow { font-size: 14px; letter-spacing: .08em; color: var(--accent-text); font-weight: 700; }
+.nb { display: inline-block; }
+h1 {
+  font-family: var(--font-display); font-size: clamp(26px, 7.2vw, 36px); line-height: 1.3;
+  margin: 0; text-wrap: balance;
+}
+.lead { margin: 0; color: var(--muted); font-size: 15px; }
+
+/* スマホは縦に1列、広い画面では左に条件・右に結果 */
+.layout { display: flex; flex-direction: column; gap: 24px; }
+.results { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+.panel {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+  padding: 18px 16px; display: flex; flex-direction: column; gap: 20px;
+}
+.label { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: .04em; }
+.field { display: flex; flex-direction: column; gap: 10px; }
+
+.chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.chips.areas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.chip {
+  font: inherit; font-size: clamp(14px, 3.8vw, 16px); font-weight: 500; cursor: pointer; text-align: left;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px;
+  min-height: 64px; padding: 10px 11px; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--chip-bg); color: var(--ink);
+  line-height: 1.35;
+}
+.chip .name { min-width: 0; overflow-wrap: anywhere; }
+.chip .n {
+  font-size: 14px; font-weight: 700; color: var(--accent-soft-ink);
+  background: var(--accent-soft); border-radius: 999px; padding: 1px 10px;
+  font-variant-numeric: tabular-nums;
+}
+.chip[aria-pressed="true"] { background: var(--accent-text); border-color: var(--accent-text); color: var(--accent-ink); font-weight: 700; }
+.chip[aria-pressed="true"] .n { background: var(--accent-ink); color: var(--accent-text); }
+.chip:focus-visible, .btn:focus-visible, input:focus-visible, a:focus-visible, .more:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.search { position: relative; }
+.search input {
+  width: 100%; font: inherit; font-size: 17px; color: var(--ink);
+  min-height: 56px; padding: 12px 14px 12px 46px; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--surface);
+}
+.search svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; fill: var(--muted); }
+
+.result-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.result-head h2 { font-family: var(--font-display); font-size: 21px; line-height: 1.4; margin: 0; text-wrap: balance; }
+.count { font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.count b { color: var(--ink); font-size: 26px; }
+
+.list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+  padding: 18px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0;
+}
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-soft-ink); }
+.tag.area { background: var(--tag-soft); color: var(--tag); }
+.card h3 { margin: 0; font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; }
+.corp { margin: 0; font-size: 14px; color: var(--muted); }
+.meta { margin: 0; font-size: 16px; display: grid; grid-template-columns: 4em minmax(0, 1fr); gap: 4px 10px; }
+.meta dt { color: var(--muted); font-size: 14px; padding-top: 2px; }
+.meta dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.tel-num { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 19px; letter-spacing: .03em; user-select: all; }
+
+.actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 6px; }
+.btn {
+  font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 52px; padding: 8px; border-radius: 12px;
+  border: 2px solid var(--accent); color: var(--accent-text); background: var(--surface);
+}
+.btn.primary { background: var(--accent-text); border-color: var(--accent-text); color: var(--accent-ink); }
+.btn.copied { border-color: var(--muted); color: var(--muted); }
+
+.empty { text-align: center; color: var(--muted); padding: 36px 16px; background: var(--surface); border: 1.5px dashed var(--line); border-radius: 16px; margin: 0; }
+.more { font: inherit; font-size: 17px; font-weight: 700; cursor: pointer; min-height: 56px; padding: 12px; border-radius: 12px; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent-text); }
+
+footer { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--line); padding-top: 18px; }
+footer a { color: var(--accent-text); font-weight: 700; }
+
+/* タブレット以上 */
+@media (min-width: 640px) {
+  .chips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .chips.areas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .panel, .card { padding: 22px; }
+}
+/* パソコン：条件を左に固定、結果を右に2列 */
+/* パソコン：左に絞り込みのリスト、右に事業所を1行ずつ並べる一覧表示 */
+@media (min-width: 960px) {
+  body { font-size: 15px; }
+  .wrap { max-width: 1320px; gap: 20px; padding-block: 28px 56px; }
+  h1 { font-size: 30px; }
+  .lead { font-size: 14px; }
+  .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: start; gap: 28px; }
+
+  /* 絞り込み：縦に並ぶ項目リスト */
+  .panel { position: sticky; top: 16px; padding: 18px 14px; gap: 18px; max-height: calc(100vh - 32px); overflow: auto; }
+  .label { font-size: 13px; color: var(--muted); padding-inline: 6px; }
+  .field { gap: 6px; }
+  .chips, .chips.areas { display: flex; flex-direction: column; gap: 2px; }
+  .chip {
+    flex-direction: row; justify-content: space-between; align-items: center;
+    min-height: 40px; padding: 6px 10px; border-radius: 8px; font-size: 15px;
+    background: transparent; border: none; box-shadow: none;
+  }
+  .chip:not([aria-pressed="true"]):hover { background: var(--chip-bg); }
+  .chip .n { background: transparent; color: var(--muted); font-size: 13px; padding: 0; }
+  .chip[aria-pressed="true"] .n { background: transparent; color: var(--accent-ink); }
+  .search input { min-height: 44px; font-size: 15px; padding-left: 40px; }
+  .search svg { width: 18px; height: 18px; left: 13px; }
+
+  /* 結果：表のように1行ずつ */
+  .results { gap: 12px; }
+  .result-head h2 { font-size: 20px; }
+  .count b { font-size: 22px; }
+  .list {
+    display: flex; flex-direction: column; gap: 0;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .card {
+    display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.5fr) 132px;
+    column-gap: 24px; row-gap: 4px; align-items: start;
+    padding: 16px 20px; border: none; border-radius: 0; box-shadow: none;
+    border-top: 1px solid var(--line);
+  }
+  .card:first-child { border-top: none; }
+  .card:hover { background: #fbfdfc; }
+  .card > .tags { grid-column: 1; grid-row: 1; }
+  .card > h3 { grid-column: 1; grid-row: 2; font-size: 17px; }
+  .card > .corp { grid-column: 1; grid-row: 3; font-size: 13px; }
+  .card > .meta { grid-column: 2; grid-row: 1 / span 3; font-size: 14px; grid-template-columns: 3.5em minmax(0, 1fr); gap: 2px 10px; align-self: center; }
+  .card > .meta dt { font-size: 12px; padding-top: 2px; }
+  .card .tel-num { font-size: 16px; }
+  .card > .actions { grid-column: 3; grid-row: 1 / span 3; display: flex; flex-direction: column; gap: 6px; margin: 0; align-self: center; }
+  .tag { font-size: 12px; padding: 2px 8px; }
+  .btn { min-height: 36px; font-size: 14px; padding: 4px 8px; border-width: 1.5px; border-radius: 8px; }
+  .more { min-height: 48px; font-size: 15px; }
+
+  /* 紹介セクション・フッター */
+  .share-section { grid-template-columns: 180px minmax(0, 1fr); }
+  .share-section .qr-box { width: 180px; }
+  .share-actions.inline { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+/* マウス操作のパソコンでは「電話する」を隠し、番号表示とコピーを使う */
+@media (min-width: 960px) and (hover: hover) and (pointer: fine) {
+  .card .btn.primary[href^="tel:"] { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) { .btn, .chip, .more { transition: background-color .15s, color .15s; } }
+
+/* 上部バー（メニュー・QR） */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.topbar .eyebrow { white-space: nowrap; }
+.topbar-actions { display: flex; gap: 6px; flex: none; }
+@media (max-width: 374px) { .topbar .eyebrow { white-space: normal; font-size: 12px; } .icon-btn { padding: 8px 9px; font-size: 13px; } }
+.icon-btn {
+  font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 4px;
+  min-height: 44px; padding: 8px 12px; border-radius: 999px;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); box-shadow: var(--shadow);
+}
+.icon-btn svg { width: 18px; height: 18px; fill: currentColor; flex: none; }
+.icon-btn.qr-btn { border-color: var(--accent-text); color: var(--accent-text); }
+.icon-btn:focus-visible, .sheet-link:focus-visible, .share-btn:focus-visible, .sheet-close:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* ダイアログ（メニュー・QR） */
+dialog.sheet {
+  border: none; padding: 0; border-radius: 20px; background: var(--surface); color: var(--ink);
+  width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, .25);
+}
+dialog.sheet::backdrop { background: rgba(15, 23, 42, .45); }
+.sheet-inner { padding: 22px 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.sheet-head h2 { font-family: var(--font-display); font-size: 21px; margin: 0; }
+.sheet-close {
+  font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; min-height: 44px; padding: 6px 14px;
+  border-radius: 999px; border: 1.5px solid var(--line); background: var(--chip-bg); color: var(--ink);
+}
+.sheet-nav { display: flex; flex-direction: column; gap: 10px; }
+.sheet-link {
+  font: inherit; font-size: 17px; font-weight: 700; text-align: left; cursor: pointer; text-decoration: none;
+  display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; border-radius: 14px;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+}
+.sheet-link small { font-size: 14px; font-weight: 400; color: var(--muted); }
+
+/* QRコード */
+.qr { display: block; width: 100%; height: auto; }
+.qr-box { width: min(260px, 70vw); margin: 0 auto; padding: 12px; background: #ffffff; border: 1.5px solid var(--line); border-radius: 16px; }
+.qr-note { margin: 0; text-align: center; font-size: 15px; color: var(--muted); }
+.url-box {
+  font-size: 14px; color: var(--ink); background: var(--chip-bg); border-radius: 10px; padding: 10px 12px;
+  overflow-wrap: anywhere; user-select: all; font-variant-numeric: tabular-nums;
+}
+.share-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.share-btn {
+  font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; text-decoration: none; text-align: center;
+  display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 8px; border-radius: 12px;
+  border: 2px solid var(--accent-text); background: var(--surface); color: var(--accent-text);
+}
+.share-btn.primary { background: var(--accent-text); color: var(--accent-ink); }
+
+/* ページ下の紹介セクション */
+.share-section {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow);
+  padding: 20px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: center;
+}
+.share-section h2 { font-family: var(--font-display); font-size: 21px; margin: 0; }
+.share-section p { margin: 0; color: var(--muted); font-size: 15px; }
+.share-section .qr-box { width: min(200px, 60vw); }
+.share-text { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+@media (min-width: 640px) {
+  .share-section { grid-template-columns: 200px minmax(0, 1fr); padding: 24px; }
+  .share-section .qr-box { width: 200px; margin: 0; }
+  .share-actions.inline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media print { .topbar-actions, dialog { display: none !important; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header id="top">
+    <div class="topbar">
+      <span class="eyebrow">宮崎県 えびの市</span>
+      <div class="topbar-actions">
+        <button type="button" class="icon-btn qr-btn" data-open="qr-dialog" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8v8H3V3Zm2 2v4h4V5H5Zm8-2h8v8h-8V3Zm2 2v4h4V5h-4ZM3 13h8v8H3v-8Zm2 2v4h4v-4H5Zm10-2h2v2h-2v-2Zm2 2h2v2h-2v-2Zm2-2h2v2h-2v-2Zm-6 4h2v2h-2v-2Zm2 2h2v2h-2v-2Zm2-2h2v2h-2v-2Zm2 2h2v2h-2v-2Z"/></svg>QRコード
+        </button>
+        <button type="button" class="icon-btn" data-open="menu-dialog" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v2H3V6Zm0 5h18v2H3v-2Zm0 5h18v2H3v-2Z"/></svg>メニュー
+        </button>
+      </div>
+    </div>
+    <h1><span class="nb">えびの市内の</span><span class="nb">介護保険事業所検索</span></h1>
+    <p class="lead" id="lead">ケアマネジャー・ご家族向け。サービスの種類や地区、事業所名から探せます。</p>
+  </header>
+
+  <div class="layout">
+  <section class="panel" aria-label="検索条件">
+    <div class="field">
+      <span class="label" id="lbl-group">サービスの種類</span>
+      <div class="chips" id="groups" role="group" aria-labelledby="lbl-group"></div>
+    </div>
+    <div class="field">
+      <span class="label" id="lbl-area">地区</span>
+      <div class="chips areas" id="areas" role="group" aria-labelledby="lbl-area"></div>
+    </div>
+    <div class="field">
+      <label class="label" for="q">事業所名・住所・法人名</label>
+      <div class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 0 1 6.32 12.9l5.39 5.4-1.41 1.4-5.4-5.39A8 8 0 1 1 10 2Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"/></svg>
+        <input id="q" type="search" placeholder="例：さくら苑、原田" autocomplete="off">
+      </div>
+    </div>
+  </section>
+
+  <div class="results">
+  <section aria-live="polite">
+    <div class="result-head">
+      <h2 id="result-title">すべてのサービス</h2>
+      <span class="count"><b id="count">0</b> 件</span>
+    </div>
+  </section>
+
+  <div class="list" id="list"></div>
+  <button class="more" id="more" type="button" hidden>もっと見る</button>
+  </div>
+  </div>
+
+  <section class="share-section" id="share" aria-labelledby="share-title">
+    <div class="qr-box"><svg class="qr" viewBox="0 0 41 41" role="img" aria-label="このページのQRコード" shape-rendering="crispEdges"><rect width="41" height="41" fill="#ffffff"/><path fill="#064e3b" d="M2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM14 2h1v1h-1zM15 2h1v1h-1zM16 2h1v1h-1zM17 2h1v1h-1zM19 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM23 2h1v1h-1zM24 2h1v1h-1zM25 2h1v1h-1zM28 2h1v1h-1zM32 2h1v1h-1zM33 2h1v1h-1zM34 2h1v1h-1zM35 2h1v1h-1zM36 2h1v1h-1zM37 2h1v1h-1zM38 2h1v1h-1zM2 3h1v1h-1zM8 3h1v1h-1zM10 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM21 3h1v1h-1zM24 3h1v1h-1zM25 3h1v1h-1zM26 3h1v1h-1zM30 3h1v1h-1zM32 3h1v1h-1zM38 3h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM12 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM21 4h1v1h-1zM23 4h1v1h-1zM24 4h1v1h-1zM25 4h1v1h-1zM27 4h1v1h-1zM30 4h1v1h-1zM32 4h1v1h-1zM34 4h1v1h-1zM35 4h1v1h-1zM36 4h1v1h-1zM38 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM13 5h1v1h-1zM19 5h1v1h-1zM22 5h1v1h-1zM23 5h1v1h-1zM25 5h1v1h-1zM27 5h1v1h-1zM30 5h1v1h-1zM32 5h1v1h-1zM34 5h1v1h-1zM35 5h1v1h-1zM36 5h1v1h-1zM38 5h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM11 6h1v1h-1zM12 6h1v1h-1zM17 6h1v1h-1zM20 6h1v1h-1zM21 6h1v1h-1zM23 6h1v1h-1zM27 6h1v1h-1zM30 6h1v1h-1zM32 6h1v1h-1zM34 6h1v1h-1zM35 6h1v1h-1zM36 6h1v1h-1zM38 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM11 7h1v1h-1zM17 7h1v1h-1zM18 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM25 7h1v1h-1zM30 7h1v1h-1zM32 7h1v1h-1zM38 7h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM26 8h1v1h-1zM28 8h1v1h-1zM30 8h1v1h-1zM32 8h1v1h-1zM33 8h1v1h-1zM34 8h1v1h-1zM35 8h1v1h-1zM36 8h1v1h-1zM37 8h1v1h-1zM38 8h1v1h-1zM11 9h1v1h-1zM14 9h1v1h-1zM15 9h1v1h-1zM16 9h1v1h-1zM17 9h1v1h-1zM19 9h1v1h-1zM20 9h1v1h-1zM22 9h1v1h-1zM24 9h1v1h-1zM26 9h1v1h-1zM27 9h1v1h-1zM28 9h1v1h-1zM29 9h1v1h-1zM30 9h1v1h-1zM2 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM8 10h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM13 10h1v1h-1zM14 10h1v1h-1zM15 10h1v1h-1zM17 10h1v1h-1zM21 10h1v1h-1zM23 10h1v1h-1zM24 10h1v1h-1zM25 10h1v1h-1zM30 10h1v1h-1zM31 10h1v1h-1zM34 10h1v1h-1zM36 10h1v1h-1zM37 10h1v1h-1zM38 10h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM10 11h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM18 11h1v1h-1zM19 11h1v1h-1zM20 11h1v1h-1zM23 11h1v1h-1zM26 11h1v1h-1zM28 11h1v1h-1zM29 11h1v1h-1zM33 11h1v1h-1zM34 11h1v1h-1zM35 11h1v1h-1zM37 11h1v1h-1zM2 12h1v1h-1zM4 12h1v1h-1zM7 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM12 12h1v1h-1zM14 12h1v1h-1zM15 12h1v1h-1zM16 12h1v1h-1zM17 12h1v1h-1zM18 12h1v1h-1zM19 12h1v1h-1zM20 12h1v1h-1zM21 12h1v1h-1zM22 12h1v1h-1zM23 12h1v1h-1zM25 12h1v1h-1zM27 12h1v1h-1zM29 12h1v1h-1zM31 12h1v1h-1zM32 12h1v1h-1zM33 12h1v1h-1zM35 12h1v1h-1zM36 12h1v1h-1zM38 12h1v1h-1zM6 13h1v1h-1zM9 13h1v1h-1zM10 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM19 13h1v1h-1zM21 13h1v1h-1zM22 13h1v1h-1zM24 13h1v1h-1zM25 13h1v1h-1zM26 13h1v1h-1zM28 13h1v1h-1zM29 13h1v1h-1zM30 13h1v1h-1zM33 13h1v1h-1zM35 13h1v1h-1zM36 13h1v1h-1zM37 13h1v1h-1zM38 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM7 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM14 14h1v1h-1zM15 14h1v1h-1zM16 14h1v1h-1zM17 14h1v1h-1zM18 14h1v1h-1zM25 14h1v1h-1zM26 14h1v1h-1zM29 14h1v1h-1zM30 14h1v1h-1zM32 14h1v1h-1zM35 14h1v1h-1zM38 14h1v1h-1zM2 15h1v1h-1zM3 15h1v1h-1zM4 15h1v1h-1zM10 15h1v1h-1zM12 15h1v1h-1zM13 15h1v1h-1zM15 15h1v1h-1zM16 15h1v1h-1zM17 15h1v1h-1zM18 15h1v1h-1zM20 15h1v1h-1zM23 15h1v1h-1zM24 15h1v1h-1zM25 15h1v1h-1zM28 15h1v1h-1zM29 15h1v1h-1zM30 15h1v1h-1zM34 15h1v1h-1zM35 15h1v1h-1zM4 16h1v1h-1zM6 16h1v1h-1zM8 16h1v1h-1zM9 16h1v1h-1zM10 16h1v1h-1zM11 16h1v1h-1zM13 16h1v1h-1zM15 16h1v1h-1zM16 16h1v1h-1zM17 16h1v1h-1zM20 16h1v1h-1zM21 16h1v1h-1zM22 16h1v1h-1zM28 16h1v1h-1zM29 16h1v1h-1zM31 16h1v1h-1zM34 16h1v1h-1zM35 16h1v1h-1zM36 16h1v1h-1zM37 16h1v1h-1zM38 16h1v1h-1zM3 17h1v1h-1zM10 17h1v1h-1zM12 17h1v1h-1zM13 17h1v1h-1zM14 17h1v1h-1zM17 17h1v1h-1zM21 17h1v1h-1zM23 17h1v1h-1zM24 17h1v1h-1zM25 17h1v1h-1zM28 17h1v1h-1zM30 17h1v1h-1zM31 17h1v1h-1zM33 17h1v1h-1zM35 17h1v1h-1zM36 17h1v1h-1zM37 17h1v1h-1zM38 17h1v1h-1zM8 18h1v1h-1zM12 18h1v1h-1zM13 18h1v1h-1zM16 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM21 18h1v1h-1zM23 18h1v1h-1zM24 18h1v1h-1zM25 18h1v1h-1zM26 18h1v1h-1zM27 18h1v1h-1zM29 18h1v1h-1zM30 18h1v1h-1zM31 18h1v1h-1zM32 18h1v1h-1zM36 18h1v1h-1zM37 18h1v1h-1zM2 19h1v1h-1zM5 19h1v1h-1zM6 19h1v1h-1zM9 19h1v1h-1zM11 19h1v1h-1zM12 19h1v1h-1zM14 19h1v1h-1zM24 19h1v1h-1zM25 19h1v1h-1zM27 19h1v1h-1zM29 19h1v1h-1zM31 19h1v1h-1zM33 19h1v1h-1zM35 19h1v1h-1zM2 20h1v1h-1zM6 20h1v1h-1zM8 20h1v1h-1zM10 20h1v1h-1zM11 20h1v1h-1zM12 20h1v1h-1zM13 20h1v1h-1zM14 20h1v1h-1zM15 20h1v1h-1zM18 20h1v1h-1zM20 20h1v1h-1zM21 20h1v1h-1zM23 20h1v1h-1zM26 20h1v1h-1zM29 20h1v1h-1zM34 20h1v1h-1zM38 20h1v1h-1zM3 21h1v1h-1zM4 21h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM10 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM14 21h1v1h-1zM15 21h1v1h-1zM16 21h1v1h-1zM17 21h1v1h-1zM18 21h1v1h-1zM21 21h1v1h-1zM22 21h1v1h-1zM24 21h1v1h-1zM25 21h1v1h-1zM27 21h1v1h-1zM31 21h1v1h-1zM33 21h1v1h-1zM38 21h1v1h-1zM4 22h1v1h-1zM7 22h1v1h-1zM8 22h1v1h-1zM10 22h1v1h-1zM11 22h1v1h-1zM12 22h1v1h-1zM14 22h1v1h-1zM16 22h1v1h-1zM18 22h1v1h-1zM19 22h1v1h-1zM21 22h1v1h-1zM25 22h1v1h-1zM26 22h1v1h-1zM28 22h1v1h-1zM29 22h1v1h-1zM30 22h1v1h-1zM31 22h1v1h-1zM32 22h1v1h-1zM33 22h1v1h-1zM34 22h1v1h-1zM35 22h1v1h-1zM3 23h1v1h-1zM6 23h1v1h-1zM10 23h1v1h-1zM14 23h1v1h-1zM15 23h1v1h-1zM17 23h1v1h-1zM18 23h1v1h-1zM19 23h1v1h-1zM20 23h1v1h-1zM21 23h1v1h-1zM22 23h1v1h-1zM24 23h1v1h-1zM25 23h1v1h-1zM27 23h1v1h-1zM29 23h1v1h-1zM34 23h1v1h-1zM36 23h1v1h-1zM2 24h1v1h-1zM3 24h1v1h-1zM4 24h1v1h-1zM5 24h1v1h-1zM6 24h1v1h-1zM8 24h1v1h-1zM13 24h1v1h-1zM15 24h1v1h-1zM17 24h1v1h-1zM18 24h1v1h-1zM23 24h1v1h-1zM25 24h1v1h-1zM26 24h1v1h-1zM28 24h1v1h-1zM29 24h1v1h-1zM30 24h1v1h-1zM33 24h1v1h-1zM35 24h1v1h-1zM38 24h1v1h-1zM6 25h1v1h-1zM9 25h1v1h-1zM11 25h1v1h-1zM13 25h1v1h-1zM14 25h1v1h-1zM16 25h1v1h-1zM20 25h1v1h-1zM21 25h1v1h-1zM22 25h1v1h-1zM29 25h1v1h-1zM30 25h1v1h-1zM32 25h1v1h-1zM33 25h1v1h-1zM34 25h1v1h-1zM35 25h1v1h-1zM36 25h1v1h-1zM37 25h1v1h-1zM5 26h1v1h-1zM8 26h1v1h-1zM9 26h1v1h-1zM10 26h1v1h-1zM11 26h1v1h-1zM12 26h1v1h-1zM13 26h1v1h-1zM14 26h1v1h-1zM15 26h1v1h-1zM17 26h1v1h-1zM19 26h1v1h-1zM22 26h1v1h-1zM23 26h1v1h-1zM24 26h1v1h-1zM26 26h1v1h-1zM29 26h1v1h-1zM30 26h1v1h-1zM32 26h1v1h-1zM33 26h1v1h-1zM37 26h1v1h-1zM38 26h1v1h-1zM2 27h1v1h-1zM6 27h1v1h-1zM9 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM20 27h1v1h-1zM21 27h1v1h-1zM24 27h1v1h-1zM26 27h1v1h-1zM27 27h1v1h-1zM29 27h1v1h-1zM30 27h1v1h-1zM31 27h1v1h-1zM34 27h1v1h-1zM35 27h1v1h-1zM36 27h1v1h-1zM2 28h1v1h-1zM3 28h1v1h-1zM5 28h1v1h-1zM7 28h1v1h-1zM8 28h1v1h-1zM9 28h1v1h-1zM11 28h1v1h-1zM13 28h1v1h-1zM14 28h1v1h-1zM15 28h1v1h-1zM16 28h1v1h-1zM17 28h1v1h-1zM20 28h1v1h-1zM24 28h1v1h-1zM26 28h1v1h-1zM29 28h1v1h-1zM31 28h1v1h-1zM36 28h1v1h-1zM37 28h1v1h-1zM38 28h1v1h-1zM2 29h1v1h-1zM4 29h1v1h-1zM5 29h1v1h-1zM6 29h1v1h-1zM9 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM14 29h1v1h-1zM15 29h1v1h-1zM16 29h1v1h-1zM18 29h1v1h-1zM21 29h1v1h-1zM24 29h1v1h-1zM28 29h1v1h-1zM34 29h1v1h-1zM35 29h1v1h-1zM36 29h1v1h-1zM38 29h1v1h-1zM2 30h1v1h-1zM4 30h1v1h-1zM7 30h1v1h-1zM8 30h1v1h-1zM10 30h1v1h-1zM11 30h1v1h-1zM13 30h1v1h-1zM14 30h1v1h-1zM17 30h1v1h-1zM18 30h1v1h-1zM21 30h1v1h-1zM22 30h1v1h-1zM26 30h1v1h-1zM27 30h1v1h-1zM29 30h1v1h-1zM30 30h1v1h-1zM31 30h1v1h-1zM32 30h1v1h-1zM33 30h1v1h-1zM34 30h1v1h-1zM35 30h1v1h-1zM36 30h1v1h-1zM37 30h1v1h-1zM38 30h1v1h-1zM10 31h1v1h-1zM13 31h1v1h-1zM14 31h1v1h-1zM15 31h1v1h-1zM17 31h1v1h-1zM19 31h1v1h-1zM21 31h1v1h-1zM22 31h1v1h-1zM23 31h1v1h-1zM24 31h1v1h-1zM26 31h1v1h-1zM29 31h1v1h-1zM30 31h1v1h-1zM34 31h1v1h-1zM36 31h1v1h-1zM37 31h1v1h-1zM2 32h1v1h-1zM3 32h1v1h-1zM4 32h1v1h-1zM5 32h1v1h-1zM6 32h1v1h-1zM7 32h1v1h-1zM8 32h1v1h-1zM10 32h1v1h-1zM11 32h1v1h-1zM13 32h1v1h-1zM14 32h1v1h-1zM17 32h1v1h-1zM19 32h1v1h-1zM20 32h1v1h-1zM21 32h1v1h-1zM25 32h1v1h-1zM27 32h1v1h-1zM30 32h1v1h-1zM32 32h1v1h-1zM34 32h1v1h-1zM38 32h1v1h-1zM2 33h1v1h-1zM8 33h1v1h-1zM10 33h1v1h-1zM11 33h1v1h-1zM14 33h1v1h-1zM15 33h1v1h-1zM17 33h1v1h-1zM21 33h1v1h-1zM22 33h1v1h-1zM23 33h1v1h-1zM25 33h1v1h-1zM26 33h1v1h-1zM27 33h1v1h-1zM28 33h1v1h-1zM29 33h1v1h-1zM30 33h1v1h-1zM34 33h1v1h-1zM37 33h1v1h-1zM38 33h1v1h-1zM2 34h1v1h-1zM4 34h1v1h-1zM5 34h1v1h-1zM6 34h1v1h-1zM8 34h1v1h-1zM10 34h1v1h-1zM14 34h1v1h-1zM17 34h1v1h-1zM18 34h1v1h-1zM20 34h1v1h-1zM22 34h1v1h-1zM23 34h1v1h-1zM26 34h1v1h-1zM28 34h1v1h-1zM29 34h1v1h-1zM30 34h1v1h-1zM31 34h1v1h-1zM32 34h1v1h-1zM33 34h1v1h-1zM34 34h1v1h-1zM37 34h1v1h-1zM38 34h1v1h-1zM2 35h1v1h-1zM4 35h1v1h-1zM5 35h1v1h-1zM6 35h1v1h-1zM8 35h1v1h-1zM10 35h1v1h-1zM11 35h1v1h-1zM15 35h1v1h-1zM22 35h1v1h-1zM23 35h1v1h-1zM24 35h1v1h-1zM25 35h1v1h-1zM27 35h1v1h-1zM28 35h1v1h-1zM29 35h1v1h-1zM31 35h1v1h-1zM32 35h1v1h-1zM38 35h1v1h-1zM2 36h1v1h-1zM4 36h1v1h-1zM5 36h1v1h-1zM6 36h1v1h-1zM8 36h1v1h-1zM11 36h1v1h-1zM12 36h1v1h-1zM16 36h1v1h-1zM19 36h1v1h-1zM24 36h1v1h-1zM25 36h1v1h-1zM27 36h1v1h-1zM28 36h1v1h-1zM30 36h1v1h-1zM31 36h1v1h-1zM34 36h1v1h-1zM36 36h1v1h-1zM38 36h1v1h-1zM2 37h1v1h-1zM8 37h1v1h-1zM12 37h1v1h-1zM13 37h1v1h-1zM17 37h1v1h-1zM19 37h1v1h-1zM20 37h1v1h-1zM24 37h1v1h-1zM25 37h1v1h-1zM28 37h1v1h-1zM31 37h1v1h-1zM32 37h1v1h-1zM34 37h1v1h-1zM35 37h1v1h-1zM36 37h1v1h-1zM37 37h1v1h-1zM38 37h1v1h-1zM2 38h1v1h-1zM3 38h1v1h-1zM4 38h1v1h-1zM5 38h1v1h-1zM6 38h1v1h-1zM7 38h1v1h-1zM8 38h1v1h-1zM10 38h1v1h-1zM11 38h1v1h-1zM12 38h1v1h-1zM16 38h1v1h-1zM21 38h1v1h-1zM22 38h1v1h-1zM30 38h1v1h-1zM33 38h1v1h-1zM35 38h1v1h-1zM38 38h1v1h-1z"/></svg></div>
+    <div class="share-text">
+      <h2 id="share-title">このページを紹介する</h2>
+      <p>スマホのカメラでQRコードを読み取ると、このページが開きます。チラシや掲示物、利用者さん・ご家族への案内にお使いください。</p>
+      <div class="share-actions inline">
+        <button type="button" class="share-btn primary" data-share>LINEなどで送る</button>
+        <button type="button" class="share-btn" data-copy-url>URLをコピー</button>
+        <a class="share-btn" href="qr/ebino-kaigo-qr-card.png" download="えびの市介護保険事業所検索_QRコード.png">チラシ用QR画像を保存</a>
+        <a class="share-btn" href="qr/ebino-kaigo-qr.png" download="えびの市介護保険事業所検索_QRのみ.png">QRコードだけを保存</a>
+      </div>
+    </div>
+  </section>
+
+  <footer id="about">
+    <span id="source"></span>
+    <span>電話番号・営業日などは変わっていることがあります。ご利用の前に各事業所へご確認ください。</span>
+    <a href="https://www.kaigokensaku.mhlw.go.jp/45/" target="_blank" rel="noopener">介護サービス情報公表システム（宮崎県版）で詳しく調べる</a>
+  </footer>
+</div>
+
+<dialog class="sheet" id="qr-dialog" aria-labelledby="qr-dialog-title">
+  <div class="sheet-inner">
+    <div class="sheet-head">
+      <h2 id="qr-dialog-title">QRコード</h2>
+      <button type="button" class="sheet-close" data-close>閉じる</button>
+    </div>
+    <div class="qr-box"><svg class="qr" viewBox="0 0 41 41" role="img" aria-label="このページのQRコード" shape-rendering="crispEdges"><rect width="41" height="41" fill="#ffffff"/><path fill="#064e3b" d="M2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM14 2h1v1h-1zM15 2h1v1h-1zM16 2h1v1h-1zM17 2h1v1h-1zM19 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM23 2h1v1h-1zM24 2h1v1h-1zM25 2h1v1h-1zM28 2h1v1h-1zM32 2h1v1h-1zM33 2h1v1h-1zM34 2h1v1h-1zM35 2h1v1h-1zM36 2h1v1h-1zM37 2h1v1h-1zM38 2h1v1h-1zM2 3h1v1h-1zM8 3h1v1h-1zM10 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM21 3h1v1h-1zM24 3h1v1h-1zM25 3h1v1h-1zM26 3h1v1h-1zM30 3h1v1h-1zM32 3h1v1h-1zM38 3h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM12 4h1v1h-1zM16 4h1v1h-1zM18 4h1v1h-1zM21 4h1v1h-1zM23 4h1v1h-1zM24 4h1v1h-1zM25 4h1v1h-1zM27 4h1v1h-1zM30 4h1v1h-1zM32 4h1v1h-1zM34 4h1v1h-1zM35 4h1v1h-1zM36 4h1v1h-1zM38 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM13 5h1v1h-1zM19 5h1v1h-1zM22 5h1v1h-1zM23 5h1v1h-1zM25 5h1v1h-1zM27 5h1v1h-1zM30 5h1v1h-1zM32 5h1v1h-1zM34 5h1v1h-1zM35 5h1v1h-1zM36 5h1v1h-1zM38 5h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM11 6h1v1h-1zM12 6h1v1h-1zM17 6h1v1h-1zM20 6h1v1h-1zM21 6h1v1h-1zM23 6h1v1h-1zM27 6h1v1h-1zM30 6h1v1h-1zM32 6h1v1h-1zM34 6h1v1h-1zM35 6h1v1h-1zM36 6h1v1h-1zM38 6h1v1h-1zM2 7h1v1h-1zM8 7h1v1h-1zM11 7h1v1h-1zM17 7h1v1h-1zM18 7h1v1h-1zM22 7h1v1h-1zM24 7h1v1h-1zM25 7h1v1h-1zM30 7h1v1h-1zM32 7h1v1h-1zM38 7h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM20 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM26 8h1v1h-1zM28 8h1v1h-1zM30 8h1v1h-1zM32 8h1v1h-1zM33 8h1v1h-1zM34 8h1v1h-1zM35 8h1v1h-1zM36 8h1v1h-1zM37 8h1v1h-1zM38 8h1v1h-1zM11 9h1v1h-1zM14 9h1v1h-1zM15 9h1v1h-1zM16 9h1v1h-1zM17 9h1v1h-1zM19 9h1v1h-1zM20 9h1v1h-1zM22 9h1v1h-1zM24 9h1v1h-1zM26 9h1v1h-1zM27 9h1v1h-1zM28 9h1v1h-1zM29 9h1v1h-1zM30 9h1v1h-1zM2 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM8 10h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM13 10h1v1h-1zM14 10h1v1h-1zM15 10h1v1h-1zM17 10h1v1h-1zM21 10h1v1h-1zM23 10h1v1h-1zM24 10h1v1h-1zM25 10h1v1h-1zM30 10h1v1h-1zM31 10h1v1h-1zM34 10h1v1h-1zM36 10h1v1h-1zM37 10h1v1h-1zM38 10h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM10 11h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM18 11h1v1h-1zM19 11h1v1h-1zM20 11h1v1h-1zM23 11h1v1h-1zM26 11h1v1h-1zM28 11h1v1h-1zM29 11h1v1h-1zM33 11h1v1h-1zM34 11h1v1h-1zM35 11h1v1h-1zM37 11h1v1h-1zM2 12h1v1h-1zM4 12h1v1h-1zM7 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM12 12h1v1h-1zM14 12h1v1h-1zM15 12h1v1h-1zM16 12h1v1h-1zM17 12h1v1h-1zM18 12h1v1h-1zM19 12h1v1h-1zM20 12h1v1h-1zM21 12h1v1h-1zM22 12h1v1h-1zM23 12h1v1h-1zM25 12h1v1h-1zM27 12h1v1h-1zM29 12h1v1h-1zM31 12h1v1h-1zM32 12h1v1h-1zM33 12h1v1h-1zM35 12h1v1h-1zM36 12h1v1h-1zM38 12h1v1h-1zM6 13h1v1h-1zM9 13h1v1h-1zM10 13h1v1h-1zM16 13h1v1h-1zM18 13h1v1h-1zM19 13h1v1h-1zM21 13h1v1h-1zM22 13h1v1h-1zM24 13h1v1h-1zM25 13h1v1h-1zM26 13h1v1h-1zM28 13h1v1h-1zM29 13h1v1h-1zM30 13h1v1h-1zM33 13h1v1h-1zM35 13h1v1h-1zM36 13h1v1h-1zM37 13h1v1h-1zM38 13h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM7 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM14 14h1v1h-1zM15 14h1v1h-1zM16 14h1v1h-1zM17 14h1v1h-1zM18 14h1v1h-1zM25 14h1v1h-1zM26 14h1v1h-1zM29 14h1v1h-1zM30 14h1v1h-1zM32 14h1v1h-1zM35 14h1v1h-1zM38 14h1v1h-1zM2 15h1v1h-1zM3 15h1v1h-1zM4 15h1v1h-1zM10 15h1v1h-1zM12 15h1v1h-1zM13 15h1v1h-1zM15 15h1v1h-1zM16 15h1v1h-1zM17 15h1v1h-1zM18 15h1v1h-1zM20 15h1v1h-1zM23 15h1v1h-1zM24 15h1v1h-1zM25 15h1v1h-1zM28 15h1v1h-1zM29 15h1v1h-1zM30 15h1v1h-1zM34 15h1v1h-1zM35 15h1v1h-1zM4 16h1v1h-1zM6 16h1v1h-1zM8 16h1v1h-1zM9 16h1v1h-1zM10 16h1v1h-1zM11 16h1v1h-1zM13 16h1v1h-1zM15 16h1v1h-1zM16 16h1v1h-1zM17 16h1v1h-1zM20 16h1v1h-1zM21 16h1v1h-1zM22 16h1v1h-1zM28 16h1v1h-1zM29 16h1v1h-1zM31 16h1v1h-1zM34 16h1v1h-1zM35 16h1v1h-1zM36 16h1v1h-1zM37 16h1v1h-1zM38 16h1v1h-1zM3 17h1v1h-1zM10 17h1v1h-1zM12 17h1v1h-1zM13 17h1v1h-1zM14 17h1v1h-1zM17 17h1v1h-1zM21 17h1v1h-1zM23 17h1v1h-1zM24 17h1v1h-1zM25 17h1v1h-1zM28 17h1v1h-1zM30 17h1v1h-1zM31 17h1v1h-1zM33 17h1v1h-1zM35 17h1v1h-1zM36 17h1v1h-1zM37 17h1v1h-1zM38 17h1v1h-1zM8 18h1v1h-1zM12 18h1v1h-1zM13 18h1v1h-1zM16 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM21 18h1v1h-1zM23 18h1v1h-1zM24 18h1v1h-1zM25 18h1v1h-1zM26 18h1v1h-1zM27 18h1v1h-1zM29 18h1v1h-1zM30 18h1v1h-1zM31 18h1v1h-1zM32 18h1v1h-1zM36 18h1v1h-1zM37 18h1v1h-1zM2 19h1v1h-1zM5 19h1v1h-1zM6 19h1v1h-1zM9 19h1v1h-1zM11 19h1v1h-1zM12 19h1v1h-1zM14 19h1v1h-1zM24 19h1v1h-1zM25 19h1v1h-1zM27 19h1v1h-1zM29 19h1v1h-1zM31 19h1v1h-1zM33 19h1v1h-1zM35 19h1v1h-1zM2 20h1v1h-1zM6 20h1v1h-1zM8 20h1v1h-1zM10 20h1v1h-1zM11 20h1v1h-1zM12 20h1v1h-1zM13 20h1v1h-1zM14 20h1v1h-1zM15 20h1v1h-1zM18 20h1v1h-1zM20 20h1v1h-1zM21 20h1v1h-1zM23 20h1v1h-1zM26 20h1v1h-1zM29 20h1v1h-1zM34 20h1v1h-1zM38 20h1v1h-1zM3 21h1v1h-1zM4 21h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM9 21h1v1h-1zM10 21h1v1h-1zM11 21h1v1h-1zM13 21h1v1h-1zM14 21h1v1h-1zM15 21h1v1h-1zM16 21h1v1h-1zM17 21h1v1h-1zM18 21h1v1h-1zM21 21h1v1h-1zM22 21h1v1h-1zM24 21h1v1h-1zM25 21h1v1h-1zM27 21h1v1h-1zM31 21h1v1h-1zM33 21h1v1h-1zM38 21h1v1h-1zM4 22h1v1h-1zM7 22h1v1h-1zM8 22h1v1h-1zM10 22h1v1h-1zM11 22h1v1h-1zM12 22h1v1h-1zM14 22h1v1h-1zM16 22h1v1h-1zM18 22h1v1h-1zM19 22h1v1h-1zM21 22h1v1h-1zM25 22h1v1h-1zM26 22h1v1h-1zM28 22h1v1h-1zM29 22h1v1h-1zM30 22h1v1h-1zM31 22h1v1h-1zM32 22h1v1h-1zM33 22h1v1h-1zM34 22h1v1h-1zM35 22h1v1h-1zM3 23h1v1h-1zM6 23h1v1h-1zM10 23h1v1h-1zM14 23h1v1h-1zM15 23h1v1h-1zM17 23h1v1h-1zM18 23h1v1h-1zM19 23h1v1h-1zM20 23h1v1h-1zM21 23h1v1h-1zM22 23h1v1h-1zM24 23h1v1h-1zM25 23h1v1h-1zM27 23h1v1h-1zM29 23h1v1h-1zM34 23h1v1h-1zM36 23h1v1h-1zM2 24h1v1h-1zM3 24h1v1h-1zM4 24h1v1h-1zM5 24h1v1h-1zM6 24h1v1h-1zM8 24h1v1h-1zM13 24h1v1h-1zM15 24h1v1h-1zM17 24h1v1h-1zM18 24h1v1h-1zM23 24h1v1h-1zM25 24h1v1h-1zM26 24h1v1h-1zM28 24h1v1h-1zM29 24h1v1h-1zM30 24h1v1h-1zM33 24h1v1h-1zM35 24h1v1h-1zM38 24h1v1h-1zM6 25h1v1h-1zM9 25h1v1h-1zM11 25h1v1h-1zM13 25h1v1h-1zM14 25h1v1h-1zM16 25h1v1h-1zM20 25h1v1h-1zM21 25h1v1h-1zM22 25h1v1h-1zM29 25h1v1h-1zM30 25h1v1h-1zM32 25h1v1h-1zM33 25h1v1h-1zM34 25h1v1h-1zM35 25h1v1h-1zM36 25h1v1h-1zM37 25h1v1h-1zM5 26h1v1h-1zM8 26h1v1h-1zM9 26h1v1h-1zM10 26h1v1h-1zM11 26h1v1h-1zM12 26h1v1h-1zM13 26h1v1h-1zM14 26h1v1h-1zM15 26h1v1h-1zM17 26h1v1h-1zM19 26h1v1h-1zM22 26h1v1h-1zM23 26h1v1h-1zM24 26h1v1h-1zM26 26h1v1h-1zM29 26h1v1h-1zM30 26h1v1h-1zM32 26h1v1h-1zM33 26h1v1h-1zM37 26h1v1h-1zM38 26h1v1h-1zM2 27h1v1h-1zM6 27h1v1h-1zM9 27h1v1h-1zM11 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM20 27h1v1h-1zM21 27h1v1h-1zM24 27h1v1h-1zM26 27h1v1h-1zM27 27h1v1h-1zM29 27h1v1h-1zM30 27h1v1h-1zM31 27h1v1h-1zM34 27h1v1h-1zM35 27h1v1h-1zM36 27h1v1h-1zM2 28h1v1h-1zM3 28h1v1h-1zM5 28h1v1h-1zM7 28h1v1h-1zM8 28h1v1h-1zM9 28h1v1h-1zM11 28h1v1h-1zM13 28h1v1h-1zM14 28h1v1h-1zM15 28h1v1h-1zM16 28h1v1h-1zM17 28h1v1h-1zM20 28h1v1h-1zM24 28h1v1h-1zM26 28h1v1h-1zM29 28h1v1h-1zM31 28h1v1h-1zM36 28h1v1h-1zM37 28h1v1h-1zM38 28h1v1h-1zM2 29h1v1h-1zM4 29h1v1h-1zM5 29h1v1h-1zM6 29h1v1h-1zM9 29h1v1h-1zM11 29h1v1h-1zM13 29h1v1h-1zM14 29h1v1h-1zM15 29h1v1h-1zM16 29h1v1h-1zM18 29h1v1h-1zM21 29h1v1h-1zM24 29h1v1h-1zM28 29h1v1h-1zM34 29h1v1h-1zM35 29h1v1h-1zM36 29h1v1h-1zM38 29h1v1h-1zM2 30h1v1h-1zM4 30h1v1h-1zM7 30h1v1h-1zM8 30h1v1h-1zM10 30h1v1h-1zM11 30h1v1h-1zM13 30h1v1h-1zM14 30h1v1h-1zM17 30h1v1h-1zM18 30h1v1h-1zM21 30h1v1h-1zM22 30h1v1h-1zM26 30h1v1h-1zM27 30h1v1h-1zM29 30h1v1h-1zM30 30h1v1h-1zM31 30h1v1h-1zM32 30h1v1h-1zM33 30h1v1h-1zM34 30h1v1h-1zM35 30h1v1h-1zM36 30h1v1h-1zM37 30h1v1h-1zM38 30h1v1h-1zM10 31h1v1h-1zM13 31h1v1h-1zM14 31h1v1h-1zM15 31h1v1h-1zM17 31h1v1h-1zM19 31h1v1h-1zM21 31h1v1h-1zM22 31h1v1h-1zM23 31h1v1h-1zM24 31h1v1h-1zM26 31h1v1h-1zM29 31h1v1h-1zM30 31h1v1h-1zM34 31h1v1h-1zM36 31h1v1h-1zM37 31h1v1h-1zM2 32h1v1h-1zM3 32h1v1h-1zM4 32h1v1h-1zM5 32h1v1h-1zM6 32h1v1h-1zM7 32h1v1h-1zM8 32h1v1h-1zM10 32h1v1h-1zM11 32h1v1h-1zM13 32h1v1h-1zM14 32h1v1h-1zM17 32h1v1h-1zM19 32h1v1h-1zM20 32h1v1h-1zM21 32h1v1h-1zM25 32h1v1h-1zM27 32h1v1h-1zM30 32h1v1h-1zM32 32h1v1h-1zM34 32h1v1h-1zM38 32h1v1h-1zM2 33h1v1h-1zM8 33h1v1h-1zM10 33h1v1h-1zM11 33h1v1h-1zM14 33h1v1h-1zM15 33h1v1h-1zM17 33h1v1h-1zM21 33h1v1h-1zM22 33h1v1h-1zM23 33h1v1h-1zM25 33h1v1h-1zM26 33h1v1h-1zM27 33h1v1h-1zM28 33h1v1h-1zM29 33h1v1h-1zM30 33h1v1h-1zM34 33h1v1h-1zM37 33h1v1h-1zM38 33h1v1h-1zM2 34h1v1h-1zM4 34h1v1h-1zM5 34h1v1h-1zM6 34h1v1h-1zM8 34h1v1h-1zM10 34h1v1h-1zM14 34h1v1h-1zM17 34h1v1h-1zM18 34h1v1h-1zM20 34h1v1h-1zM22 34h1v1h-1zM23 34h1v1h-1zM26 34h1v1h-1zM28 34h1v1h-1zM29 34h1v1h-1zM30 34h1v1h-1zM31 34h1v1h-1zM32 34h1v1h-1zM33 34h1v1h-1zM34 34h1v1h-1zM37 34h1v1h-1zM38 34h1v1h-1zM2 35h1v1h-1zM4 35h1v1h-1zM5 35h1v1h-1zM6 35h1v1h-1zM8 35h1v1h-1zM10 35h1v1h-1zM11 35h1v1h-1zM15 35h1v1h-1zM22 35h1v1h-1zM23 35h1v1h-1zM24 35h1v1h-1zM25 35h1v1h-1zM27 35h1v1h-1zM28 35h1v1h-1zM29 35h1v1h-1zM31 35h1v1h-1zM32 35h1v1h-1zM38 35h1v1h-1zM2 36h1v1h-1zM4 36h1v1h-1zM5 36h1v1h-1zM6 36h1v1h-1zM8 36h1v1h-1zM11 36h1v1h-1zM12 36h1v1h-1zM16 36h1v1h-1zM19 36h1v1h-1zM24 36h1v1h-1zM25 36h1v1h-1zM27 36h1v1h-1zM28 36h1v1h-1zM30 36h1v1h-1zM31 36h1v1h-1zM34 36h1v1h-1zM36 36h1v1h-1zM38 36h1v1h-1zM2 37h1v1h-1zM8 37h1v1h-1zM12 37h1v1h-1zM13 37h1v1h-1zM17 37h1v1h-1zM19 37h1v1h-1zM20 37h1v1h-1zM24 37h1v1h-1zM25 37h1v1h-1zM28 37h1v1h-1zM31 37h1v1h-1zM32 37h1v1h-1zM34 37h1v1h-1zM35 37h1v1h-1zM36 37h1v1h-1zM37 37h1v1h-1zM38 37h1v1h-1zM2 38h1v1h-1zM3 38h1v1h-1zM4 38h1v1h-1zM5 38h1v1h-1zM6 38h1v1h-1zM7 38h1v1h-1zM8 38h1v1h-1zM10 38h1v1h-1zM11 38h1v1h-1zM12 38h1v1h-1zM16 38h1v1h-1zM21 38h1v1h-1zM22 38h1v1h-1zM30 38h1v1h-1zM33 38h1v1h-1zM35 38h1v1h-1zM38 38h1v1h-1z"/></svg></div>
+    <p class="qr-note">スマホのカメラで読み取ると<br>このページが開きます</p>
+    <div class="url-box" id="share-url"></div>
+    <div class="share-actions">
+      <button type="button" class="share-btn primary" data-share>LINEなどで送る</button>
+      <button type="button" class="share-btn" data-copy-url>URLをコピー</button>
+      <a class="share-btn" href="qr/ebino-kaigo-qr-card.png" download="えびの市介護保険事業所検索_QRコード.png">チラシ用QR画像を保存</a>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="menu-dialog" aria-labelledby="menu-dialog-title">
+  <div class="sheet-inner">
+    <div class="sheet-head">
+      <h2 id="menu-dialog-title">メニュー</h2>
+      <button type="button" class="sheet-close" data-close>閉じる</button>
+    </div>
+    <nav class="sheet-nav" aria-label="ページ内メニュー">
+      <a class="sheet-link" href="#top" data-close>事業所を探す<small>種類・地区・名前で検索</small></a>
+      <button type="button" class="sheet-link" data-open="qr-dialog">QRコードを表示<small>その場で読み取ってもらう</small></button>
+      <a class="sheet-link" href="#share" data-close>このページを紹介する<small>LINEで送る・URLコピー・QR画像の保存</small></a>
+      <a class="sheet-link" href="#about" data-close>このページについて<small>情報の出典と注意事項</small></a>
+    </nav>
+  </div>
+</dialog>
+
+<script>
+const DATA = {"source":"厚生労働省 介護サービス情報公表システム オープンデータ","asOf":"2026年6月末時点","city":"えびの市","items":[{"s":"介護老人保健施設","n":"介護老人保健施設さくら苑","k":"カイゴロウジンホケンシセツサクラエン","a":"宮崎県えびの市大字大河平4327-37","lat":32.039911,"lng":130.912082,"tel":"0984-33-2127","fax":"0984-33-5253","corp":"医療法人社団公佑会","no":"4550980009","url":"https://kyk.or.jp"},{"s":"介護老人福祉施設","n":"特別養護老人ホームあけぼの園","k":"トクベツヨウゴロウジンホームアケボノエン","a":"宮崎県えびの市大字榎田５７９番地１０","lat":32.065643,"lng":130.81269,"tel":"0984-35-2667","fax":"0984-35-2927","corp":"社会福祉法人えびの明友会","no":"4570900011","url":"http://ebino-meiyukai.or.jp"},{"s":"介護老人福祉施設","n":"特別養護老人ホームえびの涼風園","k":"トクベツヨウゴロウジンホームエビノリョウフウエン","a":"宮崎県えびの市大字岡松１番地","lat":32.04146,"lng":130.753911,"tel":"0984-37-1220","fax":"0984-37-2310","corp":"社会福祉法人慈愛会","no":"4570900102","url":"https://ryofuen.com"},{"s":"介護老人福祉施設","n":"特別養護老人ホーム八幡の里","k":"トクベツヨウゴロウジンホームハチマンノサト","a":"宮崎県えびの市大字原田1403-27","lat":32.030958,"lng":130.878011,"tel":"0984-27-4165","fax":"0984-25-3363","corp":"社会福祉法人えびの明友会","no":"4570900425","url":"http://www.all-souai.or.jp/akebonoen/index.htm"},{"s":"地域密着型通所介護","n":"活発えびの短時間道場","k":"カッパツエビノタンジカンドウジョウ","a":"宮崎県えびの市原田2734番地90","lat":32.035973,"lng":130.867261,"tel":"0984-48-1011","fax":"0984-48-8787","corp":"株式会社活きがい発電所","no":"4570900490","days":"平日,祝日","url":"http://www.ot-road.co.jp"},{"s":"地域密着型通所介護","n":"社会福祉法人　えびの市社会福祉協議会","k":"シャカイフクシホウジン　エビノシシャカイフクシキョウギカイ","a":"宮崎県えびの市大字栗下68番地ふれあい館","lat":32.04491,"lng":130.813563,"tel":"0984-35-0066","fax":"0984-35-0071","corp":"社会福祉法人　えびの市社会福祉協議会","no":"4590900033","days":"平日,祝日","url":"http://www.ebino-shakyo.jp"},{"s":"地域密着型通所介護","n":"小ｌ規模デイサービス　より処ゆるり","k":"ショウキボデイサービス　ヨリドコロユルリ","a":"宮崎県えびの市大字向江７７６番地1","lat":32.047795,"lng":130.76472,"tel":"0984-37-0062","fax":"0968-37-0062","corp":"株式会社Ｋ・Ｔみき","no":"4570900391","days":"平日,土曜日,日曜日,祝日"},{"s":"地域密着型通所介護","n":"デイサービス活きがい発電所えびの","k":"デイサービスイキガイハツデンショエビノ","a":"宮崎県えびの市大字大明司50-7","lat":32.048615,"lng":130.85228,"tel":"0984-48-0808","corp":"株式会社活きがい発電所","no":"4570900383","days":"平日,祝日","url":"http://www.ot-road.co.jp"},{"s":"地域密着型通所介護","n":"デイサービスセンターげんきゆのはな館","k":"デイサービスセンターゲンキユノハナカン","a":"宮崎県えびの市大字亀沢392番地5","lat":32.037548,"lng":130.751542,"tel":"0984-37-0200","fax":"0984-37-0200","corp":"社会福祉法人さつき会","no":"4570900466","days":"平日,土曜日,祝日"},{"s":"定期巡回・随時対応型訪問介護看護","n":"ケアステーションすまいりんぐ","k":"ケアステーションスマイリング","a":"宮崎県えびの市大字原田2139番地","lat":32.034954,"lng":130.875904,"tel":"0984-48-1700","fax":"0984-48-1701","corp":"合同会社ＫｅｅｐＳｍｉｌｉｎｇ","no":"4590900041","url":"https://arismiling.life/"},{"s":"居宅介護支援","n":"えびの市西部指定居宅介護支援事業所","k":"エビノシセイブシテイキョタクカイゴシエンジギョウショ","a":"宮崎県えびの市大字岡松1番地","lat":32.041959,"lng":130.753793,"tel":"0984-37-3085","fax":"0984-37-2310","corp":"社会福祉法人慈愛会","no":"4570900037","days":"平日,土曜日"},{"s":"居宅介護支援","n":"居宅介護支援事業所　りぼん","k":"キョタクカイゴシエンジギョウショ　リボン","a":"宮崎県えびの市大字岡松1053番地","tel":"0984-48-5388","fax":"0984-48-5388","corp":"株式会社Ｋ・Ａ結い","no":"4570900458","days":"平日"},{"s":"居宅介護支援","n":"居宅介護支援センターやすらぎ","k":"キョタクカイゴシエンセンターヤスラギ","a":"宮崎県えびの市大字栗下1608","lat":32.045344,"lng":130.810796,"tel":"0984-35-1219","fax":"0984-35-1219","corp":"社会福祉法人えびの福祉会","no":"4570900169","days":"平日"},{"s":"居宅介護支援","n":"ケアプラン活きがい発電所","k":"ケアプランイキガイハツデンショ","a":"宮崎県えびの市大字原田2734-90","lat":32.036068,"lng":130.867502,"tel":"0984-48-1012","fax":"0984-48-8787","corp":"株式会社活きがい発電所","no":"4570900409","days":"平日"},{"s":"居宅介護支援","n":"ケアプランセンターほうよう","k":"ケアプランセンターホウヨウ","a":"宮崎県えびの市大字原田2216-10","lat":32.030836,"lng":130.870031,"tel":"0984-25-3222","fax":"0984-25-3382","corp":"社会福祉法人慶和会","no":"4570900110","days":"平日,祝日","url":"http://www.keiwakai-hoyo.com"},{"s":"居宅介護支援","n":"さくら苑新館","k":"サクラエンシンカン","a":"宮崎県えびの市大字大河平4633番地10号","lat":32.040806,"lng":130.911391,"tel":"0984-27-3137","fax":"0984-27-3138","corp":"医療法人社団公佑会","no":"4570900060","days":"平日,土曜日,祝日","url":"http://www.kyk.or.jp/"},{"s":"居宅介護支援","n":"指定居宅介護支援事業所ゆうゆう","k":"シテイキョタクガイゴシエンジギョウショ　ユウユウ","a":"宮崎県えびの市大字亀沢272番地","lat":32.037765,"lng":130.75251,"tel":"0984-37-2177","fax":"0984-48-0771","corp":"株式会社京町栄寿園","no":"4570900235","days":"平日,土曜日"},{"s":"居宅介護支援","n":"社会福祉法人えびの市社会福祉協議会","k":"シャカイフクシホウジンエビノシシャカイフクシキョウギカイ","a":"宮崎県えびの市大字栗下６７番地","lat":32.045055,"lng":130.813696,"tel":"0984-35-2800","fax":"0984-35-1983","corp":"社会福祉法人えびの市社会福祉協議会","no":"4570900045","days":"平日","url":"http://www.ebino-syakyo.jp/"},{"s":"居宅介護支援","n":"訪問看護ステーションケアふる","k":"ホウモンカンゴステーションケアフル","a":"宮崎県えびの市大字栗下209番地5","lat":32.043481,"lng":130.815171,"tel":"0984-35-1601","fax":"0984-35-1652","corp":"有限会社ケアプロジェクト","no":"4560990006","days":"平日"},{"s":"居宅介護支援","n":"ヤマゲ居宅介護支援事業所","k":"ヤマゲキョタクカイゴシエンジギョウショ","a":"宮崎県えびの市大字永山1182-1えびの市起業支援センター","lat":32.046697,"lng":130.810891,"tel":"090-4226-1137","fax":"050-3158-1250","corp":"ヤマゲ合同会社","no":"4570900474","days":"平日","url":"https://net-yui.jp/zaitaku/1272"},{"s":"居宅介護支援","n":"渡辺医院","k":"ワタナベイイン","a":"宮崎県えびの市大字向江９２９番地","lat":32.047342,"lng":130.765284,"tel":"0984-25-5850","fax":"0984-37-2886","corp":"医療法人渡辺医院","no":"4510910385","days":"平日,土曜日"},{"s":"特定施設入居者生活介護（有料老人ホーム）","n":"介護付き有料老人ホームさつき苑","k":"カイゴツキユウリョウロウジンホームサツキエン","a":"宮崎県えびの市大字亀沢391番地1号","lat":32.03767,"lng":130.751888,"tel":"0984-37-2233","fax":"0984-37-2485","corp":"医療法人社団さつき会","no":"4570900532"},{"s":"特定施設入居者生活介護（軽費老人ホーム）","n":"ケアハウスさくらの杜","k":"ケアハウスサクラノモリ","a":"宮崎県えびの市大河平4327-26","lat":32.039809,"lng":130.915965,"tel":"0984-25-3258","fax":"0984-25-3259","corp":"医療法人社団公佑会","no":"4570900219","url":"https://kyk.or.jp"},{"s":"特定福祉用具販売","n":"株式会社ライフサポート","k":"カブシキガイシャライフサポート","a":"宮崎県えびの市大河平4633-43","lat":32.040653,"lng":130.911921,"tel":"0984-33-3444","fax":"0984-33-3445","corp":"株式会社ライフサポート","no":"4570900128","days":"平日,土曜日","url":"http://e-lifesupport.com"},{"s":"短期入所生活介護","n":"えびの涼風園指定短期入所生活介護事業所","k":"エビノリョウフウエンシテイタンキニュウショセイカツカイゴジギョウショ","a":"宮崎県えびの市大字岡松１番地","lat":32.042063,"lng":130.753816,"tel":"0984-37-1220","fax":"0984-37-2310","corp":"社会福祉法人慈愛会","no":"4570900102"},{"s":"短期入所生活介護","n":"さくら苑新館ショートステイ","k":"サクラエンシンカンショートステイ","a":"宮崎県えびの市大字大河平4633-10","lat":32.040806,"lng":130.911391,"tel":"0984-27-3137","fax":"0984-27-3138","corp":"医療法人社団公佑会","no":"4570900318","url":"http://kyk.or.jp"},{"s":"短期入所生活介護","n":"シルバーケアステーションほうよう","k":"シルバーケアステーションホウヨウ","a":"宮崎県えびの市大字原田2216-10","lat":32.030836,"lng":130.870031,"tel":"0984-25-3311","fax":"0984-25-3382","corp":"社会福祉法人慶和会","no":"4570900151","url":"https://www.keiwakai-hoyo.com"},{"s":"短期入所生活介護","n":"特別養護老人ホームあけぼの園","k":"トクベツヨウゴロウジンホームアケボノエン","a":"宮崎県えびの市大字榎田５７９番地１０","lat":32.065647,"lng":130.81269,"tel":"0984-35-2667","fax":"0984-35-2927","corp":"社会福祉法人えびの明友会","no":"4570900011","url":"http://ebino-meiyukai.or.jp"},{"s":"短期入所療養介護（介護老人保健施設）","n":"介護老人保健施設さくら苑","k":"カイゴロウジンホケンシセツサクラエン","a":"宮崎県えびの市大字大河平4327-37","lat":32.03973,"lng":130.912051,"tel":"0984-33-2127","fax":"0984-33-5253","corp":"医療法人社団公佑会","no":"4550980009","url":"https://kyk.or.jp"},{"s":"福祉用具貸与","n":"株式会社ライフサポート","k":"カブシキガイシャライフサポート","a":"宮崎県えびの市大河平4633-43","lat":32.040653,"lng":130.911921,"tel":"0984-33-3444","fax":"0984-33-3445","corp":"株式会社ライフサポート","no":"4570900128","days":"平日,土曜日","url":"https://www.e-lifesupport.com"},{"s":"福祉用具貸与","n":"ユタカホームプランニング","k":"ユタカホームプランニング","a":"宮崎県えびの市大字永山１１７６－１","lat":32.046982,"lng":130.811058,"tel":"0984-48-1590","fax":"0984-48-1591","corp":"ユタカホームプランニング合同会社","no":"4570900482","days":"平日"},{"s":"訪問介護","n":"えびの涼風園指定訪問介護事業所","k":"エビノリョウフウエンシテイホウモンカイゴジギョウショ","a":"宮崎県えびの市大字岡松１番地","lat":32.041961,"lng":130.753847,"tel":"0984-37-1220","fax":"0984-37-2310","corp":"社会福祉法人慈愛会","no":"4570900052","days":"平日,土曜日,日曜日,祝日","url":"http://ryofuen.com"},{"s":"訪問介護","n":"ケアステーションすまいりんぐ","k":"ケアステーションスマイリング","a":"宮崎県えびの市原田2139番地","lat":32.034972,"lng":130.875882,"tel":"0984-48-1700","fax":"0984-48-1700","corp":"合同会社ＫｅｅｐＳｍｉｌｉｎｇ","no":"4570900524","days":"平日,土曜日,日曜日,祝日","url":"https://arismiling.life/"},{"s":"訪問介護","n":"社会福祉法人えびの市社会福祉協議会","k":"シャカイフクシホウジンエビノシシャカイフクシキョウギカイ","a":"宮崎県えびの市大字栗下６７番地","lat":32.045055,"lng":130.813696,"tel":"0984-35-2800","fax":"0984-35-1983","corp":"社会福祉法人えびの市社会福祉協議会","no":"4570900045","days":"平日,土曜日,日曜日,祝日","url":"https://www.ebino-shakyo.jp"},{"s":"訪問介護","n":"ヘルパーステーション京町温泉","k":"ヘルパーステーションキョウマチオンセン","a":"宮崎県えびの市大字亀沢２７２番地","lat":32.037778,"lng":130.752503,"tel":"0984-37-0998","fax":"0984-37-0998","corp":"社会福祉法人さつき会","no":"4570900508","days":"平日,土曜日,日曜日,祝日"},{"s":"訪問介護","n":"訪問介護ステーションえいわ","k":"ホウモンカイゴステーションエイワ","a":"宮崎県えびの市大字浦365番地83","lat":32.023479,"lng":130.780989,"tel":"0984-37-3132","fax":"0984-37-3268","corp":"株式会社えいわ","no":"4570900367","days":"平日,土曜日,日曜日,祝日"},{"s":"訪問看護","n":"訪問看護ステーション　３rd　Hand","k":"ホウモンカンゴステーション　サードハンド","a":"宮崎県えびの市向江630-1","lat":32.047356,"lng":130.766662,"tel":"0984-48-9255","fax":"0984-48-9274","corp":"株式会社絆人","no":"4560990030","days":"平日,土曜日,日曜日,祝日","url":"http://3rd-hand.com"},{"s":"訪問看護","n":"訪問看護ステーションおうち生活応援団","k":"ホウモンカンゴステーションオウチセイカツオウエンダン","a":"宮崎県えびの市大字永山943番地1","lat":32.051591,"lng":130.804528,"tel":"080-2726-9491","fax":"0984-27-3130","corp":"合同会社Ｅプラスケア","no":"4560990014","days":"平日,土曜日,日曜日,祝日"},{"s":"訪問看護","n":"訪問看護ステーションケアふる","k":"ホウモンカンゴステーションケアフル","a":"宮崎県えびの市大字栗下209-5","lat":32.043481,"lng":130.815171,"tel":"0984-35-1601","fax":"0984-35-1652","corp":"有限会社ケアプロジェクト","no":"4560990006","days":"平日"},{"s":"訪問看護","n":"訪問看護ステーションひかり","k":"ホウモンカンゴステーションヒカリ","a":"宮崎県えびの市大字原田2200-9","lat":32.032819,"lng":130.872167,"tel":"0984-33-6300","fax":"0984-33-6312","corp":"医療法人武雄会","no":"4560990022","days":"平日","url":"http://care-net.biz/45/ebinodaiichi/"},{"s":"認知症対応型共同生活介護","n":"グループホームあおい（葵）","k":"グループホームアオイ（アオイ）","a":"宮崎県えびの市大字原田2153番地6","lat":32.030628,"lng":130.873758,"tel":"0984-25-3778","fax":"0984-33-6789","corp":"医療法人武雄会","no":"4590900017","url":"https://care-net.biz/45/ebinodaiichi/"},{"s":"認知症対応型共同生活介護","n":"グループホーム顔なじみ","k":"グループホームカオナジミ","a":"宮崎県えびの市大字榎田579番地36","lat":32.066367,"lng":130.81262,"tel":"0984-25-4557","fax":"0984-35-1480","corp":"社会福祉法人えびの明友会","no":"4570900185","url":"http://ebino-meiyukai.or.jp"},{"s":"認知症対応型共同生活介護","n":"グループホームもみの木","k":"グループホームモミノキ","a":"宮崎県えびの市大字原田2199番地1","lat":32.032553,"lng":130.869706,"tel":"0984-27-3338","fax":"0984-33-2272","corp":"医療法人武雄会","no":"4590900025","url":"https://care-net.biz/45/ebinodaiichi/"},{"s":"通所リハビリテーション","n":"医療法人のなか整形外科","k":"イリョウホウジンノナカセイケイゲカ","a":"宮崎県えびの市大字原田字西谷ノ口３１８７番地","lat":32.014161,"lng":130.872803,"tel":"0984-33-2000","fax":"0984-33-2001","corp":"医療法人のなか整形外科","no":"4510910641","days":"平日,土曜日"},{"s":"通所リハビリテーション","n":"えびの第一クリニックデイケアセンター","k":"エビノダイイチクリニックデイケアセンター","a":"宮崎県えびの市大字原田２２３６番地","lat":32.033011,"lng":130.870411,"tel":"0984-33-0178","fax":"0984-33-1178","corp":"医療法人武雄会","no":"4570900300","days":"平日,土曜日"},{"s":"通所リハビリテーション","n":"えびのせいけいげかいいん","k":"エビノ整形外科医院","a":"宮崎県えびの市小田1169番地1","lat":32.052644,"lng":130.819198,"tel":"0984-35-1250","fax":"0984-35-0155","corp":"香仁会","no":"4510910484","days":"平日,土曜日"},{"s":"通所リハビリテーション","n":"介護老人保健施設さくら苑","k":"カイゴロウジンホケンシセツサクラエン","a":"宮崎県えびの市大字大河平4327-37","lat":32.039911,"lng":130.912082,"tel":"0984-33-2127","fax":"0984-33-5253","corp":"医療法人社団公佑会","no":"4550980009","days":"平日,土曜日,祝日","url":"https://kyk.or.jp"},{"s":"通所リハビリテーション","n":"京町温泉クリニック","k":"キョウマチオンセンクリニック","a":"宮崎県えびの市大字亀沢391番1号","lat":32.037726,"lng":130.752046,"tel":"0984-37-2233","fax":"0984-37-2485","corp":"医療法人社団さつき会","no":"4570900268","days":"平日,土曜日,日曜日,祝日"},{"s":"通所リハビリテーション","n":"通所リハビリテーションふき","k":"ツウショリハビリテーションフキ","a":"宮崎県えびの市大字向江９２９番地","lat":32.047342,"lng":130.765284,"tel":"0984-37-2026","fax":"0984-37-2886","corp":"医療法人渡辺医院","no":"4570900193","days":"平日,土曜日,祝日"},{"s":"通所介護","n":"加久藤デイサービスセンター","k":"カクトウデイサービスセンター","a":"宮崎県えびの市大字西郷字大溝原６４８－２","lat":32.040733,"lng":130.792343,"tel":"0984-35-1282","fax":"0984-35-1222","corp":"社会福祉法人えびの福祉会","no":"4570900086","days":"平日,土曜日,祝日"},{"s":"通所介護","n":"さくら苑京町デイサービス","k":"サクラエンキョウマチデイサービス","a":"宮崎県えびの市島内６２７番地","lat":32.057331,"lng":130.777121,"tel":"0984-21-7007","fax":"0984-37-2171","corp":"医療法人社団公佑会","no":"4570900276","days":"平日,土曜日,祝日","url":"https://kyk.or.jp"},{"s":"通所介護","n":"さくら苑新館デイサービス","k":"サクラエンシンカンデイサービス","a":"宮崎県えびの市大字大河平4633-10","lat":32.040806,"lng":130.911391,"tel":"0984-27-3137","fax":"0984-27-3138","corp":"医療法人社団公佑会","no":"4570900326","days":"平日,土曜日,祝日","url":"https://kyk.or.jp"},{"s":"通所介護","n":"シルバーケアステーションほうよう","k":"シルバーケアステーションホウヨウ","a":"宮崎県えびの市大字原田2216-10","lat":32.030836,"lng":130.870031,"tel":"0984-25-3311","fax":"0984-25-3382","corp":"社会福祉法人慶和会","no":"4570900151","days":"平日,土曜日,祝日","url":"https://www.keiwakai-hoyo.com"}]};
+
+// 利用者・家族にわかる言葉でまとめたサービスの分類
+const GROUPS = [
+  { id: 'all', name: 'すべて', types: [] },
+  { id: 'consult', name: 'ケアマネ・相談', title: 'ケアマネ・相談の窓口', types: ['居宅介護支援'] },
+  { id: 'home', name: '自宅に来てもらう', title: '自宅に来てもらうサービス', types: ['訪問介護', '訪問入浴介護', '訪問看護', '訪問リハビリテーション', '定期巡回・随時対応型訪問介護看護', '夜間対応型訪問介護'] },
+  { id: 'day', name: '日帰りで通う', title: '日帰りで通うサービス', types: ['通所介護', '地域密着型通所介護', '通所リハビリテーション', '認知症対応型通所介護', '小規模多機能型居宅介護'] },
+  { id: 'stay', name: '短期で泊まる', title: '短期で泊まるサービス', types: ['短期入所生活介護', '短期入所療養介護（介護老人保健施設）'] },
+  { id: 'live', name: '入所・住まい', title: '入所・住まいのサービス', types: ['介護老人福祉施設', '地域密着型介護老人福祉施設入所者生活介護', '介護老人保健施設', '介護医療院', '認知症対応型共同生活介護', '特定施設入居者生活介護（有料老人ホーム）', '特定施設入居者生活介護（軽費老人ホーム）', '特定施設入居者生活介護（サービス付き高齢者向け住宅）'] },
+  { id: 'equip', name: '福祉用具', title: '福祉用具のサービス', types: ['福祉用具貸与', '特定福祉用具販売'] },
+];
+
+// 住所の大字から地区を判定（旧3町の区分）
+const AREA_OAZA = {
+  '飯野': ['池島', '今西', '上江', '大河平', '坂元', '末永', '杉水流', '大明司', '原田', '前田'],
+  '加久藤': ['榎田', '小田', '栗下', '西郷', '永山', '西長江浦', '灰塚', '東川北', '東長江浦', '湯田'],
+  '真幸': ['内竪', '浦', '岡松', '亀沢', '島内', '昌明寺', '水流', '西川北', '向江', '柳水流'],
+};
+function areaOf(addr) {
+  const rest = addr.replace(/^宮崎県/, '').replace(/^えびの市/, '').replace(/^大字/, '');
+  for (const [area, list] of Object.entries(AREA_OAZA)) {
+    if (list.some(o => rest.startsWith(o))) return area;
+  }
+  return 'その他';
+}
+const AREAS = ['すべて', '飯野', '加久藤', '真幸'];
+
+const items = DATA.items.map(i => ({ ...i, area: areaOf(i.a) }));
+const PAGE = window.matchMedia('(min-width: 960px)').matches ? 50 : 30;
+let state = { group: 'all', area: 'すべて', q: '', shown: PAGE };
+
+function esc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function mapUrl(i) {
+  const ok = i.lat > 31 && i.lat < 33 && i.lng > 130 && i.lng < 132;
+  const q = ok ? `${i.lat},${i.lng}` : i.a;
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+}
+function groupOf(id) { return GROUPS.find(g => g.id === id) || GROUPS[0]; }
+function inGroup(i, g) { return g.id === 'all' || g.types.includes(i.s); }
+function inArea(i, a) { return a === 'すべて' || i.area === a; }
+
+function renderChips() {
+  const base = items.filter(i => inArea(i, state.area));
+  document.getElementById('groups').innerHTML = GROUPS.map(g => {
+    const n = base.filter(i => inGroup(i, g)).length;
+    return `<button type="button" class="chip" data-group="${g.id}" aria-pressed="${state.group === g.id}"><span class="name">${g.name}</span><span class="n">${n}件</span></button>`;
+  }).join('');
+  const g = groupOf(state.group);
+  document.getElementById('areas').innerHTML = AREAS.map(a => {
+    const n = items.filter(i => inGroup(i, g) && inArea(i, a)).length;
+    return `<button type="button" class="chip" data-area="${a}" aria-pressed="${state.area === a}"><span class="name">${a === 'すべて' ? 'すべて' : a + '地区'}</span><span class="n">${n}件</span></button>`;
+  }).join('');
+}
+
+function filtered() {
+  const g = groupOf(state.group);
+  const words = state.q.trim().split(/[\s　]+/).filter(Boolean);
+  return items.filter(i => inGroup(i, g) && inArea(i, state.area) &&
+    words.every(w => [i.n, i.k, i.a, i.corp, i.s].join(' ').includes(w)));
+}
+
+function card(i, idx) {
+  const days = i.days ? i.days.replace(/,/g, '・') : '';
+  const hp = /^https?:\/\//.test(i.url || '');
+  return `
+  <article class="card">
+    <div class="tags"><span class="tag">${esc(i.s)}</span><span class="tag area">${esc(i.area)}地区</span></div>
+    <h3>${esc(i.n)}</h3>
+    ${i.corp ? `<p class="corp">${esc(i.corp)}</p>` : ''}
+    <dl class="meta">
+      <dt>住所</dt><dd>${esc(i.a)}</dd>
+      ${i.tel ? `<dt>電話</dt><dd><span class="tel-num">${esc(i.tel)}</span></dd>` : ''}
+      ${i.fax ? `<dt>FAX</dt><dd>${esc(i.fax)}</dd>` : ''}
+      ${days ? `<dt>営業日</dt><dd>${esc(days)}</dd>` : ''}
+    </dl>
+    <div class="actions">
+      ${i.tel ? `<a class="btn primary" href="tel:${esc(i.tel)}">電話する</a>
+      <button type="button" class="btn" data-copy="${esc(i.tel)}">番号をコピー</button>` : ''}
+      <a class="btn" href="${esc(mapUrl(i))}" target="_blank" rel="noopener">地図</a>
+      ${hp ? `<a class="btn" href="${esc(i.url)}" target="_blank" rel="noopener">HP</a>` : ''}
+    </div>
+  </article>`;
+}
+
+function render() {
+  renderChips();
+  const list = filtered();
+  const g = groupOf(state.group);
+  document.getElementById('result-title').textContent =
+    (state.area === 'すべて' ? '' : state.area + '地区の') + (g.id === 'all' ? 'すべてのサービス' : g.title);
+  document.getElementById('count').textContent = list.length;
+  const box = document.getElementById('list');
+  box.innerHTML = list.length
+    ? list.slice(0, state.shown).map(card).join('')
+    : `<p class="empty">条件に合う事業所が見つかりませんでした。<br>地区や種類を「すべて」にするか、別の言葉で探してみてください。</p>`;
+  const more = document.getElementById('more');
+  more.hidden = list.length <= state.shown;
+  more.textContent = `もっと見る（残り ${Math.max(0, list.length - state.shown)} 件）`;
+}
+
+document.getElementById('groups').addEventListener('click', e => {
+  const b = e.target.closest('[data-group]'); if (!b) return;
+  state.group = b.dataset.group; state.shown = PAGE;
+  try { history.replaceState(null, '', state.group === 'all' ? location.pathname : '#' + state.group); } catch (_) {}
+  render();
+});
+document.getElementById('areas').addEventListener('click', e => {
+  const b = e.target.closest('[data-area]'); if (!b) return;
+  state.area = b.dataset.area; state.shown = PAGE; render();
+});
+document.getElementById('q').addEventListener('input', e => { state.q = e.target.value; state.shown = PAGE; render(); });
+document.getElementById('more').addEventListener('click', () => { state.shown += PAGE; render(); });
+
+// 電話番号のコピー（パソコンから固定電話でかける時用）
+document.getElementById('list').addEventListener('click', async e => {
+  const b = e.target.closest('[data-copy]'); if (!b) return;
+  const num = b.dataset.copy;
+  try {
+    await navigator.clipboard.writeText(num);
+    b.textContent = 'コピーしました';
+  } catch (_) {
+    const span = b.closest('.card').querySelector('.tel-num');
+    const r = document.createRange(); r.selectNodeContents(span);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    b.textContent = '番号を選択しました';
+  }
+  b.classList.add('copied');
+  setTimeout(() => { b.textContent = '番号をコピー'; b.classList.remove('copied'); }, 2000);
+});
+
+document.getElementById('source').textContent = `出典：${DATA.source}（${DATA.asOf}）／${DATA.city}内 ${items.length} 件`;
+const h = location.hash.slice(1);
+if (GROUPS.some(g => g.id === h)) state.group = h;
+render();
+
+// ===== メニュー・QRコード・共有 =====
+const SHARE_URL = 'https://sonosannworks.github.io/seikatsu/ebino-kaigo-search.html';
+const SHARE_TITLE = 'えびの市内の介護保険事業所検索';
+const SHARE_TEXT = 'えびの市内の介護保険事業所を、サービスの種類・地区・名前で探せます。';
+document.getElementById('share-url').textContent = SHARE_URL;
+
+function openDialog(id) {
+  document.querySelectorAll('dialog[open]').forEach(d => d.close());
+  const d = document.getElementById(id);
+  if (d && typeof d.showModal === 'function') d.showModal();
+  else location.hash = 'share';
+}
+document.addEventListener('click', async e => {
+  const opener = e.target.closest('[data-open]');
+  if (opener) { e.preventDefault(); openDialog(opener.dataset.open); return; }
+
+  const closer = e.target.closest('[data-close]');
+  if (closer) { const d = closer.closest('dialog'); if (d) d.close(); }
+
+  // ダイアログの外側（暗い部分）を押したら閉じる
+  if (e.target.tagName === 'DIALOG') e.target.close();
+
+  const shareBtn = e.target.closest('[data-share]');
+  if (shareBtn) {
+    if (navigator.share) {
+      try { await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: SHARE_URL }); } catch (_) {}
+    } else {
+      window.open('https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(SHARE_URL), '_blank', 'noopener');
+    }
+    return;
+  }
+
+  const copyBtn = e.target.closest('[data-copy-url]');
+  if (copyBtn) {
+    const label = copyBtn.textContent;
+    try { await navigator.clipboard.writeText(SHARE_URL); copyBtn.textContent = 'コピーしました'; }
+    catch (_) { copyBtn.textContent = 'URLを長押しでコピーしてください'; }
+    setTimeout(() => { copyBtn.textContent = label; }, 2000);
+  }
+});
+</script>
+
+</body>
+</html>
