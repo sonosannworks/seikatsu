@@ -55,16 +55,21 @@
         <!-- 探す対象の切り替え（インフォーマル／フォーマル） -->
         <section class="mb-6">
             <h2 class="text-md font-bold mb-3 text-gray-700">何を探しますか？</h2>
-            <div class="grid grid-cols-2 gap-3">
-                <button id="mode-informal" onclick="switchMode('informal')" class="mode-btn flex flex-col items-center justify-center p-3 rounded-xl border-2 border-primary bg-orange-50 text-primary font-bold shadow-sm">
+            <div class="grid grid-cols-3 gap-2">
+                <button id="mode-informal" onclick="switchMode('informal')" class="mode-btn flex flex-col items-center justify-center p-2 rounded-xl border-2 border-primary bg-orange-50 text-primary font-bold shadow-sm">
                     <i class="fas fa-hands-helping text-2xl mb-1"></i>
-                    <span class="text-sm">暮らしの支え</span>
-                    <span class="text-[10px] font-normal mt-0.5">保険外・地域のサービス</span>
+                    <span class="text-xs leading-tight text-center">暮らしの支え</span>
+                    <span class="text-[10px] font-normal mt-0.5 leading-tight text-center">保険外・地域のサービス</span>
                 </button>
-                <button id="mode-formal" onclick="switchMode('formal')" class="mode-btn flex flex-col items-center justify-center p-3 rounded-xl border border-gray-200 bg-white text-gray-600 font-bold shadow-sm">
+                <button id="mode-formal" onclick="switchMode('formal')" class="mode-btn flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 bg-white text-gray-600 font-bold shadow-sm">
                     <i class="fas fa-clinic-medical text-2xl mb-1"></i>
-                    <span class="text-sm">介護保険のサービス</span>
-                    <span class="text-[10px] font-normal mt-0.5">小林市内の介護事業所</span>
+                    <span class="text-xs leading-tight text-center">介護保険のサービス</span>
+                    <span class="text-[10px] font-normal mt-0.5 leading-tight text-center">小林市内の介護事業所</span>
+                </button>
+                <button id="mode-kayoi" onclick="switchMode('kayoi')" class="mode-btn flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 bg-white text-gray-600 font-bold shadow-sm">
+                    <i class="fas fa-users text-2xl mb-1"></i>
+                    <span class="text-xs leading-tight text-center">通いの場</span>
+                    <span class="text-[10px] font-normal mt-0.5 leading-tight text-center">サロン・集いの場</span>
                 </button>
             </div>
         </section>
@@ -136,6 +141,36 @@
                         介護サービス情報公表システム（宮崎県版）が開きます
                     </span>
                 </a>
+            </section>
+        </div>
+
+        <!-- ===== 通いの場ビュー ===== -->
+        <div id="kayoi-view" class="hidden">
+            <section class="mb-6">
+                <h2 class="text-md font-bold mb-4 text-gray-700">お近くの通いの場を探す</h2>
+                <label for="kayoi-school" class="block text-xs font-bold text-gray-600 mb-1">校区</label>
+                <select id="kayoi-school" onchange="renderKayoiList()" class="w-full px-3 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-green-600">
+                    <option value="">すべての校区</option>
+                </select>
+                <p class="block text-xs font-bold text-gray-600 mt-4 mb-1">区分</p>
+                <div class="flex flex-wrap gap-2" id="kayoi-kind-container">
+                    <!-- 区分ボタンがJSで生成されます -->
+                </div>
+                <div class="mt-4 relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input id="kayoi-keyword" type="search" oninput="renderKayoiList()" placeholder="名称で絞り込み（例：サロン）" class="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-green-600">
+                </div>
+            </section>
+
+            <section>
+                <div class="flex justify-between items-end mb-4">
+                    <h2 class="text-md font-bold text-gray-700" id="kayoi-title">すべての通いの場</h2>
+                    <span class="text-xs text-gray-500" id="kayoi-count">読み込み中</span>
+                </div>
+                <div id="kayoi-list" class="space-y-4"></div>
+                <p class="text-[10px] text-gray-400 mt-4 leading-relaxed">
+                    開催日・内容・参加方法は「詳細を見る」またはお問い合わせ先でご確認ください。
+                </p>
             </section>
         </div>
 
@@ -233,6 +268,7 @@
             renderCategories();
             renderFormalGroups();
             if (location.hash === '#kaigo') switchMode('formal');
+            if (location.hash === '#kayoi') switchMode('kayoi');
             await Promise.all([loadKayoi(), loadData()]);
         }
 
@@ -263,27 +299,138 @@
             if (gasDone) filterServices(currentFilter);
         }
 
-        // 表示モード（暮らしの支え／介護保険）の切り替え
+        // 表示モード（暮らしの支え／介護保険／通いの場）の切り替え
+        const modeConfig = {
+            informal: { view: 'informal-view', btn: 'mode-informal', on: ['border-2', 'border-primary', 'bg-orange-50', 'text-primary'], hash: '' },
+            formal:   { view: 'formal-view',   btn: 'mode-formal',   on: ['border-2', 'border-blue-600', 'bg-blue-50', 'text-blue-700'], hash: '#kaigo' },
+            kayoi:    { view: 'kayoi-view',    btn: 'mode-kayoi',    on: ['border-2', 'border-green-600', 'bg-green-50', 'text-green-700'], hash: '#kayoi' },
+        };
         function switchMode(mode) {
             currentMode = mode;
-            const isFormal = mode === 'formal';
-            document.getElementById('informal-view').classList.toggle('hidden', isFormal);
-            document.getElementById('formal-view').classList.toggle('hidden', !isFormal);
-
-            const inf = document.getElementById('mode-informal');
-            const frm = document.getElementById('mode-formal');
             const off = ['border', 'border-gray-200', 'bg-white', 'text-gray-600'];
-            inf.classList.remove('border-2', 'border-primary', 'bg-orange-50', 'text-primary', ...off);
-            frm.classList.remove('border-2', 'border-blue-600', 'bg-blue-50', 'text-blue-700', ...off);
-            if (isFormal) {
-                frm.classList.add('border-2', 'border-blue-600', 'bg-blue-50', 'text-blue-700');
-                inf.classList.add(...off);
-                loadFormal();
-            } else {
-                inf.classList.add('border-2', 'border-primary', 'bg-orange-50', 'text-primary');
-                frm.classList.add(...off);
+            Object.entries(modeConfig).forEach(([key, cfg]) => {
+                const active = key === mode;
+                document.getElementById(cfg.view).classList.toggle('hidden', !active);
+                const btn = document.getElementById(cfg.btn);
+                btn.classList.remove(...cfg.on, ...off);
+                btn.classList.add(...(active ? cfg.on : off));
+            });
+            if (mode === 'formal') loadFormal();
+            if (mode === 'kayoi') renderKayoiList();
+            const hash = modeConfig[mode].hash;
+            history.replaceState(null, '', hash || location.pathname + location.search);
+        }
+
+        // ===== 通いの場（スプレッドシート「通いの場」タブ） =====
+        let kayoiPlaces = [];
+        let kayoiLoaded = false;
+        let kayoiKind = '';
+
+        // GASから受け取った通いの場データをセットして、絞り込み項目を作る
+        function setKayoiPlaces(list) {
+            kayoiPlaces = Array.isArray(list) ? list : [];
+            kayoiLoaded = true;
+
+            const unique = key => [...new Set(kayoiPlaces.map(p => p[key]).filter(Boolean))];
+            document.getElementById('kayoi-school').innerHTML =
+                '<option value="">すべての校区</option>' +
+                unique('school').map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+
+            const kinds = [''].concat(unique('kind'));
+            document.getElementById('kayoi-kind-container').innerHTML = kinds.map(k => `
+                <button type="button" data-kind="${esc(k)}" onclick="setKayoiKind(this.dataset.kind)" class="kayoi-kind-btn px-3 py-1.5 text-xs rounded-full border transition">${k ? esc(k) : 'すべて'}</button>`).join('');
+            highlightKayoiKind();
+            renderKayoiList();
+        }
+
+        function setKayoiKind(kind) {
+            kayoiKind = kind;
+            highlightKayoiKind();
+            renderKayoiList();
+        }
+
+        function highlightKayoiKind() {
+            document.querySelectorAll('.kayoi-kind-btn').forEach(btn => {
+                const on = btn.dataset.kind === kayoiKind;
+                btn.classList.toggle('bg-green-600', on);
+                btn.classList.toggle('text-white', on);
+                btn.classList.toggle('border-green-600', on);
+                btn.classList.toggle('bg-white', !on);
+                btn.classList.toggle('text-gray-600', !on);
+                btn.classList.toggle('border-gray-200', !on);
+            });
+        }
+
+        // 問い合わせ先「小林市社会福祉協議会 0984-23-3466」を名称と電話番号に分ける
+        function splitContact(contact) {
+            const m = String(contact || '').match(/0\d{1,4}-?\d{1,4}-?\d{3,4}/);
+            if (!m) return { label: contact || '', tel: '' };
+            return { label: contact.replace(m[0], '').trim(), tel: m[0] };
+        }
+
+        // 通いの場の一覧を描画
+        function renderKayoiList() {
+            const list = document.getElementById('kayoi-list');
+            const countEl = document.getElementById('kayoi-count');
+            if (!kayoiLoaded) {
+                if (fetchFailed) {
+                    list.innerHTML = `
+                        <div class="text-center py-10 bg-white rounded-xl border border-red-200">
+                            <i class="fas fa-exclamation-triangle text-4xl text-red-300 mb-3"></i>
+                            <p class="text-red-500 text-sm">通いの場の情報の取得に失敗しました。<br>時間をおいて再度お試しください。</p>
+                        </div>`;
+                    countEl.textContent = '取得エラー';
+                } else {
+                    list.innerHTML = `
+                        <div class="text-center py-10 bg-white rounded-xl border border-gray-200">
+                            <i class="fas fa-spinner fa-spin text-3xl text-gray-300 mb-3"></i>
+                            <p class="text-gray-400 text-sm">通いの場の情報を読み込み中...</p>
+                        </div>`;
+                    countEl.textContent = '読み込み中';
+                }
+                return;
             }
-            history.replaceState(null, '', isFormal ? '#kaigo' : location.pathname + location.search);
+
+            const school = document.getElementById('kayoi-school').value;
+            const kw = document.getElementById('kayoi-keyword').value.trim();
+            let items = kayoiPlaces;
+            if (school) items = items.filter(p => p.school === school);
+            if (kayoiKind) items = items.filter(p => p.kind === kayoiKind);
+            if (kw) {
+                const words = kw.split(/[\s　]+/);
+                items = items.filter(p => words.every(w => (p.name || '').includes(w)));
+            }
+
+            const parts = [school, kayoiKind].filter(Boolean);
+            document.getElementById('kayoi-title').textContent =
+                parts.length ? `${parts.join('・')}の通いの場` : 'すべての通いの場';
+            countEl.textContent = `${items.length}件`;
+
+            if (items.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-10 bg-white rounded-xl border border-gray-200">
+                        <i class="fas fa-search text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500 text-sm">該当する通いの場が見つかりませんでした。</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = items.map(p => {
+                const c = splitContact(p.contact);
+                const hasUrl = /^https?:\/\//.test(p.url || '');
+                return `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    ${p.kind ? `<span class="inline-block px-2 py-1 text-[10px] font-bold rounded bg-green-100 text-green-700 mb-1">${esc(p.kind)}</span>` : ''}
+                    <h3 class="font-bold text-gray-800 leading-tight">${esc(p.name)}</h3>
+                    <p class="text-xs text-gray-600 mt-2"><i class="fas fa-school mr-1 text-gray-400"></i>${esc(p.school)}${p.area ? `／${esc(p.area)}` : ''}</p>
+                    <p class="text-xs text-gray-600 mt-1"><i class="fas fa-map-marker-alt mr-1 text-gray-400"></i>場所：${p.place ? esc(p.place) : '<span class="text-gray-400">詳細ページで確認</span>'}</p>
+                    ${p.contact ? `<p class="text-[10px] text-gray-500 mt-2"><i class="far fa-building mr-1"></i>問い合わせ：${esc(c.label)}${c.tel ? ` <a href="tel:${esc(c.tel.replace(/-/g, ''))}" class="text-green-700 underline">${esc(c.tel)}</a>` : ''}</p>` : ''}
+                    <div class="mt-3 flex gap-2">
+                        ${c.tel ? `<a href="tel:${esc(c.tel.replace(/-/g, ''))}" class="flex-1 bg-white border-2 border-green-600 text-green-700 font-bold py-2 rounded-lg text-center text-sm hover:bg-green-50 transition"><i class="fas fa-phone-alt mr-1"></i>電話する</a>` : ''}
+                        ${hasUrl ? `<a href="${esc(p.url)}" target="_blank" rel="noopener" class="flex-1 bg-green-600 text-white font-bold py-2 rounded-lg text-center text-sm hover:bg-green-700 transition shadow-sm"><i class="fas fa-external-link-alt mr-1"></i>詳細を見る</a>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         // 介護保険サービス（小林市分）を読み込む
@@ -410,11 +557,13 @@
                 gasDone = true;
                 renderAnnouncements(announcements);
                 filterServices(currentFilter);
+                setKayoiPlaces(data.kayoinoba);
             } catch (error) {
                 console.error('データの取得に失敗しました:', error);
                 gasDone = true;
                 fetchFailed = true;
                 showFetchError();
+                renderKayoiList();
             }
         }
 
